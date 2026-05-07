@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ExternalStorageConfigurationManager" enabled="true" />
@@ -7,4 +8,8 @@
   <component name="ProjectType">
     <option name="id" value="Android" />
   </component>
+=======
+<project version="4">
+  <component name="ExternalStorageConfigurationManager" enabled="true" />
+>>>>>>> 9012155e78f859aaadadc13d4296bf3e34cbc525
 </project>
