@@ -6,10 +6,10 @@
 
             <stroke
                 android:width="2dp"
-                android:color="@color/AzulEscuro"
+                android:color="@color/AzulVivo"
                 />
 
-            <corners android:radius="6dp" />
+            <corners android:radius="12dp" />
         </shape>
     </item>
 </selector>
