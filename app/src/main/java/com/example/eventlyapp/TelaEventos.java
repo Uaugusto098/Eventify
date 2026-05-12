@@ -57,8 +57,6 @@ public class TelaEventos extends AppCompatActivity {
 
         // 3. Chamar o banco de dados
         dao = new EventoDAO();
-        Evento evento = new Evento("1","teste","02/05/2006","descricao","1");
-        dao.salvar(evento);
         atualizarListaDoBanco();
     }
 
