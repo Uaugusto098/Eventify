@@ -6,4 +6,6 @@
     </style>
 
     <style name="Theme.EventlyApp" parent="Base.Theme.EventlyApp" />
+    <style name="RoundedImageView" parent="">
+        <item name="cornerSize">5%</item> </style>
 </resources>

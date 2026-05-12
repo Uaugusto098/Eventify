@@ -18,8 +18,8 @@
             android:name=".TelaListarEventos"
             android:exported="false" />
         <activity
-            android:name=".TelaEventos"
-            android:exported="false" />
+            android:name=".MainActivity"
+            android:exported="true" />
         <activity
             android:name=".TelaEvento"
             android:exported="false" />
@@ -30,7 +30,7 @@
             android:name=".TelaCadastrarEvento"
             android:exported="false" />
         <activity
-            android:name=".MainActivity"
+            android:name=".TelaEventos"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

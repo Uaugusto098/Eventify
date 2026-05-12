@@ -5,7 +5,65 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/AzulEscuro"
+    android:background="#1B2D42"
     tools:context=".TelaEventos">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/white"
+                android:gravity="center"
+                android:text="Eventify"
+                android:textSize="20sp" />
+
+            <TextView
+                android:id="@+id/textView3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="Meus eventos"
+                android:textSize="20sp" />
+
+            <ListView
+                android:id="@+id/lsvEventos"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginTop="5dp"
+                android:divider="@android:color/transparent"
+                android:dividerHeight="0dp">
+
+            </ListView>
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/button"
+            android:layout_width="50dp"
+            android:layout_height="54dp"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="16dp"
+            android:backgroundTint="@color/AzulVivo"
+            android:padding="0px"
+            android:text="+"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            app:cornerRadius="5dp" />
+
+        <ImageView
+            android:id="@+id/imgNenhumEvento"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:srcCompat="@drawable/naoexisteevento" />
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
