@@ -80,7 +80,7 @@
         android:textSize="12sp" />
 
     <android.widget.Button
-        android:id="@+id/btn_login"
+        android:id="@+id/btnLogin"
         android:layout_width="match_parent"
         android:layout_height="55dp"
         android:layout_marginTop="32dp"
@@ -94,10 +94,11 @@
         android:id="@+id/btnTelaCadastro"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="20dp"
         android:background="?attr/selectableItemBackground"
         android:clickable="true"
         android:focusable="true"
+        android:onClick="telaCadastro"
         android:padding="8dp"
         android:text="Não tem conta? Cadastre-se"
         android:textColor="#FFFFFF"
