@@ -47,7 +47,7 @@
         </LinearLayout>
 
         <Button
-            android:id="@+id/button"
+            android:id="@+id/btnAdicionar"
             android:layout_width="50dp"
             android:layout_height="54dp"
             android:layout_gravity="bottom|end"
