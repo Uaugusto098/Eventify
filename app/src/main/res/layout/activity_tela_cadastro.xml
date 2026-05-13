@@ -9,13 +9,13 @@
     android:orientation="vertical"
     android:padding="32dp"
     android:gravity="center_horizontal"
-    tools:context=".TelaLoginCadastro">
+    tools:context=".TelaCadastro">
 
     <ImageView
         android:id="@+id/imgLogo"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:layout_marginTop="30dp"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_marginTop="10dp"
         app:srcCompat="@drawable/logoapp" />
 
     <com.google.android.material.textfield.TextInputLayout
@@ -29,6 +29,8 @@
         android:textColorHint="#FFFFFF"
         app:boxStrokeColor="#FFFFFF"
         app:hintTextColor="#FFFFFF"
+        app:errorEnabled="true"
+        app:errorTextColor="#FF6B6B"
         app:boxCornerRadiusBottomEnd="12dp"
         app:boxCornerRadiusBottomStart="12dp"
         app:boxCornerRadiusTopEnd="12dp"
@@ -38,7 +40,7 @@
             android:id="@+id/edtNomeCadastro"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="textEmailAddress"
+            android:inputType="textPersonName"
             android:textColor="#FFFFFF" />
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -47,12 +49,13 @@
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
         android:layout_marginHorizontal="20dp"
         android:hint="E-mail"
         android:textColorHint="#FFFFFF"
         app:boxStrokeColor="#FFFFFF"
         app:hintTextColor="#FFFFFF"
+        app:errorEnabled="true"
+        app:errorTextColor="#FF6B6B"
         app:boxCornerRadiusBottomEnd="12dp"
         app:boxCornerRadiusBottomStart="12dp"
         app:boxCornerRadiusTopEnd="12dp"
@@ -71,12 +74,13 @@
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
         android:layout_marginHorizontal="20dp"
         android:hint="Senha"
         android:textColorHint="#FFFFFF"
         app:boxStrokeColor="#FFFFFF"
         app:hintTextColor="#FFFFFF"
+        app:errorEnabled="true"
+        app:errorTextColor="#FF6B6B"
         app:passwordToggleEnabled="true"
         app:passwordToggleTint="#FFFFFF"
         app:boxCornerRadiusBottomEnd="12dp"
@@ -97,12 +101,13 @@
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
         android:layout_marginHorizontal="20dp"
         android:hint="Confirmar Senha"
         android:textColorHint="#FFFFFF"
         app:boxStrokeColor="#FFFFFF"
         app:hintTextColor="#FFFFFF"
+        app:errorEnabled="true"
+        app:errorTextColor="#FF6B6B"
         app:passwordToggleEnabled="true"
         app:passwordToggleTint="#FFFFFF"
         app:boxCornerRadiusBottomEnd="12dp"
@@ -118,16 +123,14 @@
             android:textColor="#FFFFFF" />
     </com.google.android.material.textfield.TextInputLayout>
 
-
-
     <android.widget.Button
         android:id="@+id/btn_cadastro"
         android:layout_width="match_parent"
         android:layout_height="55dp"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="16dp"
         android:layout_marginHorizontal="20dp"
         android:background="@drawable/botaopastelg"
-        android:text="Login"
+        android:text="Cadastre-se"
         android:textColor="#1D2F46"
         android:textStyle="bold" />
 
@@ -144,7 +147,6 @@
         android:text="Já tem conta? Faça Login"
         android:textColor="#FFFFFF"
         android:textSize="14sp"
-        android:textStyle="bold"
-        tools:ignore="OnClick" />
+        android:textStyle="bold" />
 
 </LinearLayout>
