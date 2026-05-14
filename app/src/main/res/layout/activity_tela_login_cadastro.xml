@@ -78,9 +78,12 @@
         android:layout_height="wrap_content"
         android:layout_gravity="end"
         android:layout_marginEnd="20dp"
+        android:clickable="true"
+        android:focusable="true"
         android:text="Esqueci minha senha"
         android:textColor="#FFFFFF"
-        android:textSize="12sp" />
+        android:textSize="12sp"
+        android:background="?attr/selectableItemBackground"/>
 
     <android.widget.Button
         android:id="@+id/btnLogin"
