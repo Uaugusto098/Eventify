@@ -12,14 +12,14 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.EventlyApp">
         <activity
-            android:name=".TelaLoginCadastro"
+            android:name=".MainActivity"
             android:exported="false" />
         <activity
             android:name=".TelaListarEventos"
             android:exported="false" />
         <activity
-            android:name=".MainActivity"
-            android:exported="true" />
+            android:name=".TelaEventos"
+            android:exported="false" />
         <activity
             android:name=".TelaEvento"
             android:exported="false" />
@@ -30,7 +30,7 @@
             android:name=".TelaCadastrarEvento"
             android:exported="false" />
         <activity
-            android:name=".TelaEventos"
+            android:name=".TelaLoginCadastro"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
