@@ -20,6 +20,10 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.eventlyapp.EventoDAO;
 import com.example.eventlyapp.Evento;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.mlkit.vision.barcode.common.Barcode;
+import com.google.mlkit.vision.codescanner.GmsBarcodeScanner;
+import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions;
+import com.google.mlkit.vision.codescanner.GmsBarcodeScanning;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +35,7 @@ public class TelaEventos extends AppCompatActivity {
     private ArrayList<String> nomesEventos; // Lista de strings para o ArrayAdapter simples
     private ArrayAdapter<String> adapter;
     private EventoDAO dao;
+    private List<Evento> listaCompletaEventos = new ArrayList<>();
     private Intent it;
 
     @Override
@@ -72,7 +77,7 @@ public class TelaEventos extends AppCompatActivity {
         dao = new EventoDAO();
         String[] tiposDeEventos = {"Show de Rock", "Palestra Tech", "Workshop Culinária", "Stand-up Comedy", "Hackathon", "Feira de Livros"};
 
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < 3; i++) {
             Evento ev = new Evento();
             // Escolhe um nome da lista acima + o número do loop para ser diferente
             String nomeSorteado = tiposDeEventos[i % tiposDeEventos.length];
@@ -81,7 +86,7 @@ public class TelaEventos extends AppCompatActivity {
             // Salva no Firebase
             dao.salvar(ev);
         }
-        dao.limparTudo();
+
 
 
         atualizarListaDoBanco();
@@ -89,7 +94,7 @@ public class TelaEventos extends AppCompatActivity {
 
         lsvDados.setOnItemClickListener((parent, view, position, id) -> {
             // Pega o objeto que foi clicado
-            Evento clienteClicado = (Evento) parent.getItemAtPosition(position);
+            Evento clienteClicado = listaCompletaEventos.get(position);
             // Exemplo: Mostrar o nome do cliente ou abrir uma nova tela
             it =  new Intent(getApplicationContext(), TelaEvento.class);
 
@@ -114,14 +119,87 @@ public class TelaEventos extends AppCompatActivity {
                 return true;
 
             } else if (id == R.id.nav_camera) {
-                // Ação quando clicar em "camera"
-                // Exemplo: mostrar um Toast por enquanto
-                Toast.makeText(this, "Carregando camera...", Toast.LENGTH_SHORT).show();
+                // 1. Configurar as opções (apenas QR Code para ser mais rápido)
+                GmsBarcodeScannerOptions options = new GmsBarcodeScannerOptions.Builder()
+                        .setBarcodeFormats(Barcode.FORMAT_QR_CODE)
+                        .enableAutoZoom() // Ajuda se o QR estiver longe
+                        .build();
+
+                // 2. Inicializar o Scanner
+                GmsBarcodeScanner scanner = GmsBarcodeScanning.getClient(TelaEventos.this, options);
+
+                // 3. Abrir a câmera e processar o resultado
+                scanner.startScan()
+                        .addOnSuccessListener(barcode -> {
+                            // 1. Pega o link que está dentro do QR Code
+                            String url = barcode.getRawValue();
+
+                            // 2. Verifica se o valor realmente parece um link (começa com http)
+                            if (url != null && (url.startsWith("http://") || url.startsWith("https://"))) {
+
+                                androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(TelaEventos.this);
+
+                                // 2. Configurar o título e a mensagem
+                                builder.setTitle("Deseja ser redirecionado?");
+                                builder.setMessage("Link:"+ url);
+
+                                // 3. Botão de confirmação (Sim)
+                                builder.setPositiveButton("Sim", (dialog, which) -> {
+                                    // Se clicar em sim, ele executa a sua lógica de sair
+                                    Intent intentNavegador = new Intent(Intent.ACTION_VIEW);
+                                    intentNavegador.setData(android.net.Uri.parse(url));
+
+                                    // 4. Inicia a atividade (abre o Chrome/Samsung Internet, etc.)
+                                    startActivity(intentNavegador);
+                                });
+
+                                // 4. Botão de cancelamento (Não)
+                                builder.setNegativeButton("Não", (dialog, which) -> {
+                                    // Se clicar em não, apenas fecha o card e não faz nada
+                                    dialog.dismiss();
+                                });
+
+                                // 5. Exibir o card na tela
+                                builder.show();
+                                // 3. Cria a Intent de visualização
+
+
+                            } else {
+                                // Se o QR Code for apenas um texto e não um link
+                                Toast.makeText(this, "Conteúdo do QR não é um link: " + url, Toast.LENGTH_LONG).show();
+                            }
+                        })
+                        .addOnFailureListener(e -> {
+                            Toast.makeText(this, "Erro ao ler QR Code", Toast.LENGTH_SHORT).show();
+                        });
+
                 return true;
 
             } else if (id == R.id.nav_sair) {
                 // Ação quando clicar em "sair"
-                finish();
+                androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(TelaEventos.this);
+
+                // 2. Configurar o título e a mensagem
+                builder.setTitle("Sair da Conta");
+                builder.setMessage("Deseja realmente sair da sua conta?");
+
+                // 3. Botão de confirmação (Sim)
+                builder.setPositiveButton("Sim", (dialog, which) -> {
+                    // Se clicar em sim, ele executa a sua lógica de sair
+                    Intent intentSair = new Intent(TelaEventos.this, TelaLoginCadastro.class);
+                    startActivity(intentSair);
+                    finish(); // Fecha a tela atual para ele não conseguir voltar no botão "back"
+                });
+
+                // 4. Botão de cancelamento (Não)
+                builder.setNegativeButton("Não", (dialog, which) -> {
+                    // Se clicar em não, apenas fecha o card e não faz nada
+                    dialog.dismiss();
+                });
+
+                // 5. Exibir o card na tela
+                builder.show();
+
                 return true;
             }
 
@@ -136,6 +214,8 @@ public class TelaEventos extends AppCompatActivity {
             public void onSucesso(List<Evento> listaRecebida) {
                 // Limpamos a lista de nomes atual
                 nomesEventos.clear();
+                listaCompletaEventos.clear();
+                listaCompletaEventos.addAll(listaRecebida);
 
                 // Como seu ArrayAdapter é de String, vamos extrair apenas os nomes dos objetos Evento
                 for (Evento e : listaRecebida) {

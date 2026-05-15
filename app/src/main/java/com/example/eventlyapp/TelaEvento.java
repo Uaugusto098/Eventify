@@ -1,6 +1,8 @@
 package com.example.eventlyapp;
 
 import android.os.Bundle;
+import android.view.View;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -20,5 +22,12 @@ public class TelaEvento extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+        TextView txtvoltar = findViewById(R.id.txtBack1);
+
+
+
+    }
+    public void sair(View view){
+        finish();
     }
 }
