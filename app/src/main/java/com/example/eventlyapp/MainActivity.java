@@ -1,7 +1,11 @@
 package com.example.eventlyapp;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import androidx.activity.EdgeToEdge;
@@ -11,6 +15,10 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 public class MainActivity extends AppCompatActivity {
+
+
+    private Button cadastrarEventos,listarEventos;
+    private Intent it;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,5 +40,40 @@ public class MainActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> {
                     Log.e("FIREBASE_TESTE", "Erro ao conectar: " + e.getMessage());
                 });
+
+        cadastrarEventos=findViewById(R.id.cadastrarEventos);
+        listarEventos=findViewById(R.id.listarEventos);
+
+
+        cadastrarEventos.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                it=new Intent(MainActivity.this, TelaCadastrarEvento.class);
+                startActivity(it);
+
+
+            }
+        });
+        listarEventos.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                it=new Intent(MainActivity.this, TelaEventos.class);
+                startActivity(it);
+
+
+            }
+        });
+
+
+
+
+
+
+
+
+
+
     }
 }

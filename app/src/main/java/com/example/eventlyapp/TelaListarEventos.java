@@ -1,6 +1,9 @@
 package com.example.eventlyapp;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -9,6 +12,9 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 public class TelaListarEventos extends AppCompatActivity {
+
+    private Button btnAdicionar;
+    private Intent it;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,5 +26,27 @@ public class TelaListarEventos extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+
+        btnAdicionar=findViewById(R.id.btnAdicionar);
+
+
+
+        btnAdicionar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                it=new Intent(TelaListarEventos.this,MainActivity.class);
+                startActivity(it);
+                finish();
+
+
+
+
+            }
+        });
+
+
+
     }
 }
