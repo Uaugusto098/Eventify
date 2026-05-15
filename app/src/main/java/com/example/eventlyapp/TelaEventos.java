@@ -33,9 +33,12 @@ public class TelaEventos extends AppCompatActivity {
     private ListView lsvDados;
     private ImageView imgNenhumEvento;
     private ArrayList<String> nomesEventos; // Lista de strings para o ArrayAdapter simples
-    private ArrayAdapter<String> adapter;
+    private EventoAdapter adapter;
     private EventoDAO dao;
+
     private List<Evento> listaCompletaEventos = new ArrayList<>();
+
+
     private Intent it;
 
     @Override
@@ -65,27 +68,13 @@ public class TelaEventos extends AppCompatActivity {
 
         // 2. Inicializar a lista e o Adapter (começa vazia)
         nomesEventos = new ArrayList<>();
-        adapter = new ArrayAdapter<>(
-                this,
-                R.layout.item_lista,
-                R.id.txtNomeEvento,
-                nomesEventos
-        );
+        adapter = new EventoAdapter(this, listaCompletaEventos);
         lsvDados.setAdapter(adapter);
+
 
         // 3. Chamar o banco de dados
         dao = new EventoDAO();
-        String[] tiposDeEventos = {"Show de Rock", "Palestra Tech", "Workshop Culinária", "Stand-up Comedy", "Hackathon", "Feira de Livros"};
-
-        for (int i = 0; i < 3; i++) {
-            Evento ev = new Evento();
-            // Escolhe um nome da lista acima + o número do loop para ser diferente
-            String nomeSorteado = tiposDeEventos[i % tiposDeEventos.length];
-            ev.setNome(nomeSorteado + " #" + (i + 1));
-
-            // Salva no Firebase
-            dao.salvar(ev);
-        }
+        
 
 
 
@@ -208,25 +197,16 @@ public class TelaEventos extends AppCompatActivity {
     }
 
     private void atualizarListaDoBanco() {
-        // Chamada assíncrona do seu DAO
         dao.obterTodos(new EventoDAO.EventoCallback() {
             @Override
             public void onSucesso(List<Evento> listaRecebida) {
-                // Limpamos a lista de nomes atual
-                nomesEventos.clear();
                 listaCompletaEventos.clear();
                 listaCompletaEventos.addAll(listaRecebida);
 
-                // Como seu ArrayAdapter é de String, vamos extrair apenas os nomes dos objetos Evento
-                for (Evento e : listaRecebida) {
-                    nomesEventos.add(e.getNome());
-                }
-
-                // Notificamos o adapter que os dados mudaram para ele atualizar a tela
+                // Avisa o adapter que a lista de objetos mudou
                 adapter.notifyDataSetChanged();
 
-                // Lógica de visibilidade da imagem de "vazio"
-                if (nomesEventos.isEmpty()) {
+                if (listaCompletaEventos.isEmpty()) {
                     imgNenhumEvento.setVisibility(VISIBLE);
                     lsvDados.setVisibility(GONE);
                 } else {

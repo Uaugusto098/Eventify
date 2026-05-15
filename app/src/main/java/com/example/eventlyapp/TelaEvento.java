@@ -1,5 +1,6 @@
 package com.example.eventlyapp;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
@@ -9,6 +10,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 
 public class TelaEvento extends AppCompatActivity {
 
@@ -23,6 +27,24 @@ public class TelaEvento extends AppCompatActivity {
             return insets;
         });
         TextView txtvoltar = findViewById(R.id.txtBack1);
+        //layout
+        TextInputLayout descricaoInfo = findViewById(R.id.descricaoInfo);
+        TextInputLayout nomeInfo = findViewById(R.id.nomeInfo);
+        TextInputLayout dataInfo = findViewById(R.id.dataInfo);
+
+        //edtext
+
+        TextInputEditText descricaoInput= findViewById(R.id.descricaoInput);
+        TextInputEditText nomeInput= findViewById(R.id.nomeInput);
+        TextInputEditText dataInput= findViewById(R.id.dataInput);
+
+        Intent intentRecebida = getIntent();
+
+
+        descricaoInput.setText(intentRecebida.getStringExtra("descricao"));
+        nomeInput.setText(intentRecebida.getStringExtra("nome"));
+        dataInput.setText(intentRecebida.getStringExtra("data"));
+
 
 
 

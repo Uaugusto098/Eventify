@@ -70,7 +70,10 @@
             app:boxStrokeColor="#FFFFFF"
             app:errorEnabled="true"
             app:errorTextColor="#FF6B6B"
-            app:hintTextColor="#FFFFFF">
+            app:hintTextColor="#FFFFFF"
+            app:endIconDrawable="@android:drawable/ic_menu_edit"
+            app:endIconMode="custom"
+            app:endIconTint="@color/white">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/nomeInput"
@@ -95,7 +98,10 @@
             app:boxStrokeColor="#FFFFFF"
             app:errorEnabled="true"
             app:errorTextColor="#FF6B6B"
-            app:hintTextColor="#FFFFFF">
+            app:hintTextColor="#FFFFFF"
+            app:endIconDrawable="@android:drawable/ic_menu_edit"
+            app:endIconMode="custom"
+            app:endIconTint="@color/white">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/dataInput"
@@ -119,7 +125,10 @@
             app:boxStrokeColor="#FFFFFF"
             app:errorEnabled="true"
             app:errorTextColor="#FF6B6B"
-            app:hintTextColor="#FFFFFF">
+            app:hintTextColor="#FFFFFF"
+            app:endIconDrawable="@android:drawable/ic_menu_edit"
+            app:endIconMode="custom"
+            app:endIconTint="@color/white">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/descricaoInput"
