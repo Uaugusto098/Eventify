@@ -50,6 +50,10 @@ public class EventoDAO {
             }
         });
     }
+    public void limparTudo() {
+        // Isso remove todos os dados dentro do nó "eventos"
+        database.removeValue();
+    }
 
     // Interface para lidar com a natureza assíncrona do Firebase
     public interface EventoCallback {

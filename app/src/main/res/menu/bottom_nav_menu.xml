@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_adicionar"
+        android:icon="@drawable/ic_adicionar"
+        android:title="Adicionar" />
+    <item
+        android:id="@+id/nav_camera"
+        android:icon="@drawable/ic_camera"
+        android:title="ler QrCode" />
+    <item
+        android:id="@+id/nav_sair"
+        android:icon="@drawable/ic_sair"
+        android:title="Sair" />
+</menu>
