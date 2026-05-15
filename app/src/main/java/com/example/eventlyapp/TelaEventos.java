@@ -26,7 +26,7 @@ import java.util.List;
 
 public class TelaEventos extends AppCompatActivity {
 
-    private ListView listView;
+    private ListView lsvDados;
     private ImageView imgNenhumEvento;
     private ArrayList<String> nomesEventos; // Lista de strings para o ArrayAdapter simples
     private ArrayAdapter<String> adapter;
@@ -56,7 +56,7 @@ public class TelaEventos extends AppCompatActivity {
 
         // 1. Inicializar componentes da UI
         imgNenhumEvento = findViewById(R.id.imgNenhumEvento);
-        listView = findViewById(R.id.lsvEventos);
+        lsvDados = findViewById(R.id.lsvEventos);
 
         // 2. Inicializar a lista e o Adapter (começa vazia)
         nomesEventos = new ArrayList<>();
@@ -66,7 +66,7 @@ public class TelaEventos extends AppCompatActivity {
                 R.id.txtNomeEvento,
                 nomesEventos
         );
-        listView.setAdapter(adapter);
+        lsvDados.setAdapter(adapter);
 
         // 3. Chamar o banco de dados
         dao = new EventoDAO();
@@ -82,7 +82,25 @@ public class TelaEventos extends AppCompatActivity {
             dao.salvar(ev);
         }
         dao.limparTudo();
+
+
         atualizarListaDoBanco();
+
+
+        lsvDados.setOnItemClickListener((parent, view, position, id) -> {
+            // Pega o objeto que foi clicado
+            Evento clienteClicado = (Evento) parent.getItemAtPosition(position);
+            // Exemplo: Mostrar o nome do cliente ou abrir uma nova tela
+            it =  new Intent(getApplicationContext(), TelaEvento.class);
+
+            it.putExtra("id", clienteClicado.getId());
+            it.putExtra("nome", clienteClicado.getNome());
+            it.putExtra("data", clienteClicado.getData());
+            it.putExtra("descricao", clienteClicado.getDescricao());
+            it.putExtra("imagem", clienteClicado.getImagemUri());
+
+            startActivity(it);
+        });
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
 
         bottomNav.setOnItemSelectedListener(item -> {
@@ -91,18 +109,18 @@ public class TelaEventos extends AppCompatActivity {
             if (id == R.id.nav_adicionar) {
                 // Ação quando clicar em "Meus Eventos"
                 // Exemplo: recarregar sua lista do banco
-                it = new Intent(getApplicationContext(), TelaCadastrarEvento.class);
+                it = new Intent(TelaEventos.this, TelaCadastrarEvento.class);
                 startActivity(it);
                 return true;
 
             } else if (id == R.id.nav_camera) {
-                // Ação quando clicar em "Disponíveis"
+                // Ação quando clicar em "camera"
                 // Exemplo: mostrar um Toast por enquanto
-                Toast.makeText(this, "Carregando eventos disponíveis...", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Carregando camera...", Toast.LENGTH_SHORT).show();
                 return true;
 
             } else if (id == R.id.nav_sair) {
-                // Ação quando clicar em "Perfil"
+                // Ação quando clicar em "sair"
                 finish();
                 return true;
             }
@@ -130,10 +148,10 @@ public class TelaEventos extends AppCompatActivity {
                 // Lógica de visibilidade da imagem de "vazio"
                 if (nomesEventos.isEmpty()) {
                     imgNenhumEvento.setVisibility(VISIBLE);
-                    listView.setVisibility(GONE);
+                    lsvDados.setVisibility(GONE);
                 } else {
                     imgNenhumEvento.setVisibility(GONE);
-                    listView.setVisibility(VISIBLE);
+                    lsvDados.setVisibility(VISIBLE);
                 }
             }
         });

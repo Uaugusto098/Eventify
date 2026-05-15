@@ -21,7 +21,7 @@ public class TelaCadastrarEvento extends AppCompatActivity {
 
     private ImageView imageAdd;
 
-    private TextInputEditText info1,info2,info3;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,9 +38,9 @@ public class TelaCadastrarEvento extends AppCompatActivity {
         btnBack=findViewById(R.id.btnBack);
         cadastrarEventos=findViewById(R.id.cadastrarEventos);
         imageAdd=findViewById(R.id.imageAdd);
-        info1=findViewById(R.id.info1);
-        info2=findViewById(R.id.info2);
-        info3=findViewById(R.id.info3);
+        TextInputEditText inputNome = findViewById(R.id.info1Input); // ID do EditText, não do Layout
+        TextInputEditText inputData = findViewById(R.id.info2Input);
+        TextInputEditText inputDesc = findViewById(R.id.info3Input);
 
 
 

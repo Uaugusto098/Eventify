@@ -11,12 +11,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.EventlyApp">
-        <activity
-            android:name=".MainActivity"
-            android:exported="false" />
-        <activity
-            android:name=".TelaListarEventos"
-            android:exported="false" />
+
         <activity
             android:name=".TelaEventos"
             android:exported="false" />

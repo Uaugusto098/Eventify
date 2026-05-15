@@ -16,7 +16,7 @@ public class Evento {
         this.id = id;
         this.nome = nome;
         this.data = data;
-        Descricao = descricao;
+        this.Descricao = descricao;
         this.imagemUri = imagemUri;
     }
 
