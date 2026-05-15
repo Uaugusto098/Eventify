@@ -74,9 +74,35 @@ public class TelaEventos extends AppCompatActivity {
 
         // 3. Chamar o banco de dados
         dao = new EventoDAO();
-        
 
+        /*
+        dao.limparTudo();
+        String[] tiposDeEventos = {"Show de Rock", "Palestra Tech", "Workshop Culinária", "Stand-up Comedy", "Hackathon", "Feira de Livros"};
+        String[] datas = {"20/05/2026", "12/06/2026", "05/07/2026", "18/08/2026", "30/09/2026", "10/10/2026"};
+        String[] descricoes = {
+                "Uma noite inesquecível com as melhores bandas locais.",
+                "Tudo sobre as novas tendências de Inteligência Artificial.",
+                "Aprenda a fazer massas artesanais com um Chef profissional.",
+                "Prepare-se para rir muito com os melhores comediantes.",
+                "48 horas de programação intensa e muita pizza.",
+                "Milhares de títulos com descontos incríveis para leitores."
+        };
 
+// 2. Rodamos o loop (aumentei para 6 para usar todos os dados acima)
+        for (int i = 0; i < 6; i++) {
+            Evento ev = new Evento();
+
+            // O operador % (módulo) garante que não dê erro se o loop for maior que a lista
+            ev.setNome(tiposDeEventos[i % tiposDeEventos.length]);
+            ev.setData(datas[i % datas.length]);
+            ev.setDescricao(descricoes[i % descricoes.length]);
+
+            // Se você tiver um campo de imagem, pode setar um placeholder ou algo assim:
+            // ev.setImagemUri("android.resource://com.example.eventlyapp/" + R.drawable.logoapp);
+
+            dao.salvar(ev);
+        }
+         */
 
         atualizarListaDoBanco();
 
