@@ -42,6 +42,15 @@ public class TelaLoginCadastro extends AppCompatActivity {
             return insets;
         });
 
+        try {
+
+            com.google.firebase.database.FirebaseDatabase.getInstance().setPersistenceEnabled(true);
+
+        } catch (Exception e) {
+
+// Evita crash se a persistência já tiver sido ativada antes
+
+        }
         iniciarComponentes();
         configurarLimpadoresDeErro();
 

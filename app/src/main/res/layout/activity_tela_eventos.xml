@@ -47,6 +47,8 @@
             android:visibility="gone"
             app:srcCompat="@drawable/naoexisteevento" />
 
+
+
     </FrameLayout>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView

@@ -1,4 +1,5 @@
 package com.example.eventlyapp;
+
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
@@ -6,22 +7,22 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import java.util.ArrayList;
 import java.util.List;
+
 public class EventoDAO {
     private DatabaseReference database;
 
     public EventoDAO() {
-        // "eventos" é o nome do nó principal no seu banco de dados
         this.database = FirebaseDatabase.getInstance().getReference("eventos");
+        // MÁGICA AQUI: Mantém este nó específico sempre sincronizado em segundo plano
+        this.database.keepSynced(true);
     }
 
     // CREATE / UPDATE
     public void salvar(Evento evento) {
         if (evento.getId() == null) {
-            // Gera um ID único se for um novo evento
             String id = database.push().getKey();
             evento.setId(id);
         }
-        // No Firebase, o setValue serve tanto para inserir quanto para atualizar
         database.child(evento.getId()).setValue(evento);
     }
 
@@ -30,17 +31,19 @@ public class EventoDAO {
         database.child(evento.getId()).removeValue();
     }
 
-    // READ (O CRUD assíncrono)
+    // READ OTIMIZADO (Sem delay e sem vazamento de memória)
     public void obterTodos(final EventoCallback callback) {
-        database.addValueEventListener(new ValueEventListener() {
+        // Mudamos para addListenerForSingleValueEvent para ler o cache local instantaneamente
+        database.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
                 List<Evento> eventos = new ArrayList<>();
                 for (DataSnapshot postSnapshot : snapshot.getChildren()) {
                     Evento evento = postSnapshot.getValue(Evento.class);
-                    eventos.add(evento);
+                    if (evento != null) {
+                        eventos.add(evento);
+                    }
                 }
-                // Avisa quem chamou que os dados chegaram
                 callback.onSucesso(eventos);
             }
 
@@ -50,14 +53,12 @@ public class EventoDAO {
             }
         });
     }
+
     public void limparTudo() {
-        // Isso remove todos os dados dentro do nó "eventos"
         database.removeValue();
     }
 
-    // Interface para lidar com a natureza assíncrona do Firebase
     public interface EventoCallback {
         void onSucesso(List<Evento> lista);
     }
-
 }

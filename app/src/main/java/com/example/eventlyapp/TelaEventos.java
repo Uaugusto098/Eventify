@@ -36,6 +36,7 @@ public class TelaEventos extends AppCompatActivity {
     private EventoAdapter adapter;
     private EventoDAO dao;
 
+
     private List<Evento> listaCompletaEventos = new ArrayList<>();
 
 
@@ -63,6 +64,7 @@ public class TelaEventos extends AppCompatActivity {
         });
 
         // 1. Inicializar componentes da UI
+
         imgNenhumEvento = findViewById(R.id.imgNenhumEvento);
         lsvDados = findViewById(R.id.lsvEventos);
 
@@ -104,7 +106,7 @@ public class TelaEventos extends AppCompatActivity {
         }
          */
 
-        atualizarListaDoBanco();
+
 
 
         lsvDados.setOnItemClickListener((parent, view, position, id) -> {
@@ -112,7 +114,12 @@ public class TelaEventos extends AppCompatActivity {
             Evento clienteClicado = listaCompletaEventos.get(position);
             // Exemplo: Mostrar o nome do cliente ou abrir uma nova tela
             it =  new Intent(getApplicationContext(), TelaEvento.class);
-
+            if(clienteClicado.getDescricao().equals("Evento sem descrição")){
+                clienteClicado.setDescricao("");
+            }
+            if(clienteClicado.getData().equals("Sem data marcada")){
+                clienteClicado.setData("");
+            }
             it.putExtra("id", clienteClicado.getId());
             it.putExtra("nome", clienteClicado.getNome());
             it.putExtra("data", clienteClicado.getData());
@@ -223,14 +230,18 @@ public class TelaEventos extends AppCompatActivity {
     }
 
     private void atualizarListaDoBanco() {
+        // 1. Mostra o loading e esconde a lista/imagem vazia antes de buscar
+
+
+        imgNenhumEvento.setVisibility(GONE);
+
         dao.obterTodos(new EventoDAO.EventoCallback() {
             @Override
             public void onSucesso(List<Evento> listaRecebida) {
                 listaCompletaEventos.clear();
                 listaCompletaEventos.addAll(listaRecebida);
-
-                // Avisa o adapter que a lista de objetos mudou
                 adapter.notifyDataSetChanged();
+
 
                 if (listaCompletaEventos.isEmpty()) {
                     imgNenhumEvento.setVisibility(VISIBLE);
@@ -241,5 +252,12 @@ public class TelaEventos extends AppCompatActivity {
                 }
             }
         });
+    }
+    @Override
+    protected void onResume() {
+        super.onResume(); // Pronto, agora está correto!
+
+        // Recarrega a lista toda vez que a tela voltar a ficar ativa
+        atualizarListaDoBanco();
     }
 }

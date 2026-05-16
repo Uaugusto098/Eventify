@@ -79,7 +79,9 @@
                 android:id="@+id/nomeInput"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="#FFFFFF" />
+                android:maxLines="1"
+                android:singleLine="true"
+                android:textColor="#FFFFFF"/>
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout

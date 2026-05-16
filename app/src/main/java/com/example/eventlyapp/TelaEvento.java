@@ -1,8 +1,10 @@
 package com.example.eventlyapp;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -11,6 +13,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -49,14 +52,108 @@ public class TelaEvento extends AppCompatActivity {
 
         Intent intentRecebida = getIntent();
 
-
+        String id = intentRecebida.getStringExtra("id");
+        String img = intentRecebida.getStringExtra("imagem");
         descricaoInput.setText(intentRecebida.getStringExtra("descricao"));
         nomeInput.setText(intentRecebida.getStringExtra("nome"));
         dataInput.setText(intentRecebida.getStringExtra("data"));
 
 
+        Button btnExcluir = findViewById(R.id.btnExcluir);
+        Button btnAlterar = findViewById(R.id.btnAlterar);
 
+        btnExcluir.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
 
+                androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(TelaEvento.this);
+
+                // 2. Configurar o título e a mensagem
+                builder.setTitle("Excluir Evento");
+                builder.setMessage("Deseja realmente excluir o evento?");
+
+                // 3. Botão de confirmação (Sim)
+                builder.setPositiveButton("Sim", (dialog, which) -> {
+                    // Se clicar em sim, ele executa a sua lógica de sair
+                    EventoDAO dao = new EventoDAO();
+
+                    Evento evento = new Evento();
+                    evento.setId(id);
+
+                    dao.deletar(evento);
+
+                    finish(); // Fecha a tela atual para ele não conseguir voltar no botão "back"
+                });
+
+                // 4. Botão de cancelamento (Não)
+                builder.setNegativeButton("Não", (dialog, which) -> {
+                    // Se clicar em não, apenas fecha o card e não faz nada
+                    dialog.dismiss();
+                });
+
+                // 5. Exibir o card na tela
+                builder.show();
+            }
+        });
+        btnAlterar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(nomeInput.getText().toString().isEmpty()){
+                    Snackbar.make(findViewById(android.R.id.content), "Preencha o campo Nome para alterar!", Snackbar.LENGTH_LONG)
+                            .setBackgroundTint(Color.parseColor("#1D2F46"))
+                            .setTextColor(Color.WHITE)
+                            .show();
+                    return;
+                }
+                if(nomeInput.getText().toString().equals(intentRecebida.getStringExtra("nome")) && dataInput.getText().toString().equals(intentRecebida.getStringExtra("data")) && descricaoInput.getText().toString().equals(intentRecebida.getStringExtra("descricao"))){
+                    Snackbar.make(findViewById(android.R.id.content), "É preciso alterar pelo menos um campo para alterar ", Snackbar.LENGTH_LONG)
+                            .setBackgroundTint(Color.parseColor("#1D2F46"))
+                            .setTextColor(Color.WHITE)
+                            .show();
+                    return;
+                }
+
+                androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(TelaEvento.this);
+
+                // 2. Configurar o título e a mensagem
+                builder.setTitle("Alterar Evento");
+                builder.setMessage("Deseja realmente alterar o evento?");
+
+                // 3. Botão de confirmação (Sim)
+                builder.setPositiveButton("Sim", (dialog, which) -> {
+                    // Se clicar em sim, ele executa a sua lógica de sair
+                    EventoDAO dao = new EventoDAO();
+
+                    Evento evento = new Evento();
+                    evento.setId(id);
+                    evento.setNome(nomeInput.getText().toString());
+                    if (dataInput.getText().toString().isEmpty()){
+                        dataInput.setText("Sem data marcada");
+                        evento.setData(dataInput.getText().toString());
+                    }
+                    if (descricaoInput.getText().toString().isEmpty()){
+                        descricaoInput.setText("Evento sem descrição");
+                        evento.setDescricao(descricaoInput.getText().toString());
+                    }
+                    evento.setData(dataInput.getText().toString());
+                    evento.setDescricao(descricaoInput.getText().toString());
+                    evento.setImagemUri(img);
+
+                    dao.salvar(evento);
+
+                    finish(); // Fecha a tela atual para ele não conseguir voltar no botão "back"
+                });
+
+                // 4. Botão de cancelamento (Não)
+                builder.setNegativeButton("Não", (dialog, which) -> {
+                    // Se clicar em não, apenas fecha o card e não faz nada
+                    dialog.dismiss();
+                });
+
+                // 5. Exibir o card na tela
+                builder.show();
+            }
+        });
     }
     public void sair(View view){
         finish();
