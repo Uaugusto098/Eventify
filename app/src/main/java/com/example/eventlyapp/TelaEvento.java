@@ -2,9 +2,11 @@ package com.example.eventlyapp;
 
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -49,6 +51,7 @@ public class TelaEvento extends AppCompatActivity {
         TextInputEditText descricaoInput= findViewById(R.id.descricaoInput);
         TextInputEditText nomeInput= findViewById(R.id.nomeInput);
         TextInputEditText dataInput= findViewById(R.id.dataInput);
+
 
         Intent intentRecebida = getIntent();
 

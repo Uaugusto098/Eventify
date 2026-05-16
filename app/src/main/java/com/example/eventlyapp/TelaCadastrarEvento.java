@@ -1,4 +1,5 @@
 package com.example.eventlyapp;
+import com.example.eventlyapp.EventoDAO;
 
 import android.os.Bundle;
 import android.view.View;
@@ -7,20 +8,37 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import android.net.Uri;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.ImageView;
 
 import com.google.android.material.textfield.TextInputEditText;
 
 public class TelaCadastrarEvento extends AppCompatActivity {
 
     private Button cadastrarEventos;
+    Evento user=new Evento();
     private TextView btnBack;
 
     private ImageView imageAdd;
 
+    private ActivityResultLauncher<String> imagemUser;
+
+
+    private Uri imageUriselect=null;
+
+    private TextInputEditText inputNome,inputData,inputDesc;
+
+
+    EventoDAO dao;
 
 
     @Override
@@ -35,18 +53,37 @@ public class TelaCadastrarEvento extends AppCompatActivity {
         });
 
 
+         dao=new EventoDAO();
+
         btnBack=findViewById(R.id.btnBack);
         cadastrarEventos=findViewById(R.id.cadastrarEventos);
         imageAdd=findViewById(R.id.imageAdd);
-        TextInputEditText inputNome = findViewById(R.id.info1Input); // ID do EditText, não do Layout
-        TextInputEditText inputData = findViewById(R.id.info2Input);
-        TextInputEditText inputDesc = findViewById(R.id.info3Input);
+         inputNome = findViewById(R.id.info1Input); // ID do EditText, não do Layout
+         inputData = findViewById(R.id.info2Input);
+         inputDesc = findViewById(R.id.info3Input);
 
 
+        imagemUser= registerForActivityResult(new ActivityResultContracts.GetContent(), new ActivityResultCallback<Uri>() {
+            @Override
+            public void onActivityResult(Uri select) {
 
+                if(select!=null)
+                {   imageUriselect=select;
 
+                    imageAdd.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                    imageAdd.setImageURI(select);
+                }
 
+            }
+        });
+        imageAdd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
 
+                imagemUser.launch("image/*");
+
+            }
+        });
 
         btnBack.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -57,7 +94,39 @@ public class TelaCadastrarEvento extends AppCompatActivity {
             }
         });
 
+        cadastrarEventos.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
 
+
+
+                capturarDados(
+                        inputNome.getText().toString(),
+                        inputData.getText().toString(),
+                        inputDesc.getText().toString()
+
+                );
+
+                finish();
+
+
+            }
+        });
+
+    }
+
+    public void capturarDados(String nome,String data, String desc){
+
+        user.setNome(nome);
+        user.setData(data);
+        user.setDescricao(desc);
+
+        if(imageUriselect!=null)
+        {
+            user.setImagemUri(imageUriselect.toString());
+        }
+
+        dao.salvar(user);
 
     }
 
