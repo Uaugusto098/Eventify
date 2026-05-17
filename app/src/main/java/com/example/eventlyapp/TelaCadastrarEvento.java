@@ -54,15 +54,12 @@ public class TelaCadastrarEvento extends AppCompatActivity {
 
 
          dao=new EventoDAO();
-
         btnBack=findViewById(R.id.btnBack);
         cadastrarEventos=findViewById(R.id.cadastrarEventos);
         imageAdd=findViewById(R.id.imageAdd);
          inputNome = findViewById(R.id.info1Input); // ID do EditText, não do Layout
          inputData = findViewById(R.id.info2Input);
          inputDesc = findViewById(R.id.info3Input);
-
-
         imagemUser= registerForActivityResult(new ActivityResultContracts.GetContent(), new ActivityResultCallback<Uri>() {
             @Override
             public void onActivityResult(Uri select) {
@@ -84,7 +81,6 @@ public class TelaCadastrarEvento extends AppCompatActivity {
 
             }
         });
-
         btnBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -93,12 +89,11 @@ public class TelaCadastrarEvento extends AppCompatActivity {
 
             }
         });
-
         cadastrarEventos.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-
+              
 
                 capturarDados(
                         inputNome.getText().toString(),
@@ -112,15 +107,21 @@ public class TelaCadastrarEvento extends AppCompatActivity {
 
             }
         });
-
     }
-
     public void capturarDados(String nome,String data, String desc){
 
         user.setNome(nome);
         user.setData(data);
         user.setDescricao(desc);
 
+        if (inputData.getText().toString().isEmpty()){
+            inputData.setText("Sem data marcada");
+            user.setData(inputData.getText().toString());
+        }
+        if (inputDesc.getText().toString().isEmpty()){
+            inputDesc.setText("Evento sem descrição");
+            user.setDescricao(inputDesc.getText().toString());
+        }
         if(imageUriselect!=null)
         {
             user.setImagemUri(imageUriselect.toString());
@@ -129,10 +130,4 @@ public class TelaCadastrarEvento extends AppCompatActivity {
         dao.salvar(user);
 
     }
-
-
-
-
-
-
 }

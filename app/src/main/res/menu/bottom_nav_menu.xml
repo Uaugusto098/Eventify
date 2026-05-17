@@ -12,4 +12,10 @@
         android:id="@+id/nav_sair"
         android:icon="@drawable/ic_sair"
         android:title="Sair" />
+    <item
+        android:id="@+id/nav_placeholder"
+        android:title=""
+        android:visible="false"
+        android:checked="true" />
+
 </menu>
