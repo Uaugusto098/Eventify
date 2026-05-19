@@ -16,9 +16,7 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 
 public class FormularioPresenca extends AppCompatActivity {
 
@@ -35,8 +33,8 @@ public class FormularioPresenca extends AppCompatActivity {
 
         inicializarViews();
 
-        // Recebe dados do evento via Intent
-        eventoId           = getIntent().getStringExtra("eventoId");
+        // CORREÇÃO 1: Alinhado com a chave "id" enviada pela TelaEventos pós-scanner
+        eventoId           = getIntent().getStringExtra("id");
         String nomeEvento  = getIntent().getStringExtra("nomeEvento");
         String dataEvento  = getIntent().getStringExtra("dataEvento");
 
@@ -76,30 +74,32 @@ public class FormularioPresenca extends AppCompatActivity {
 
         if (!validarCampos(nome, email, cpf, telefone)) return;
 
+        if (eventoId.isEmpty()) {
+            Toast.makeText(this, "Erro: ID do evento inválido.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         btnConfirmar.setClickable(false);
         txtBtnConfirmar.setText("ENVIANDO...");
         txtErro.setVisibility(View.GONE);
 
-        DatabaseReference presencaRef = FirebaseDatabase.getInstance()
-                .getReference("presencas")
+        // CORREÇÃO 2: Aponta exatamente para o nó estruturado no seu EventoDAO
+        // Caminho: eventos -> [id_do_evento] -> participantes -> [push_gerado]
+        DatabaseReference participantesRef = FirebaseDatabase.getInstance()
+                .getReference("eventos")
+                .child(eventoId)
+                .child("participantes")
                 .push();
 
-        String dataHora = new SimpleDateFormat("dd/MM/yyyy HH:mm", new Locale("pt", "BR"))
-                .format(new Date());
+        // Formata a String contendo Nome e Email combinados para ser lida como texto pelo relatório
+        String stringParticipante = nome + " (" + email + ")";
 
-        Map<String, Object> dados = new HashMap<>();
-        dados.put("nome",     nome);
-        dados.put("email",    email);
-        dados.put("cpf",      cpf);
-        dados.put("telefone", telefone);
-        dados.put("eventoId", eventoId);
-        dados.put("data",     dataHora);
-
-        presencaRef.setValue(dados)
+        // Salva a string formatada direto no banco
+        participantesRef.setValue(stringParticipante)
                 .addOnSuccessListener(unused -> {
                     Toast.makeText(this, "✓ Presença confirmada!", Toast.LENGTH_LONG).show();
                     limparCampos();
-                    finish();
+                    finish(); // Fecha o formulário e volta para a tela anterior
                 })
                 .addOnFailureListener(e -> {
                     txtErro.setText("✗ Erro ao salvar. Tente novamente.");
@@ -212,8 +212,6 @@ public class FormularioPresenca extends AppCompatActivity {
             }
         });
     }
-
-    // ─── Botão voltar ─────────────────────────────────────────────────────────
 
     public void sair(View view) {
         finish();

@@ -16,7 +16,6 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.mlkit.vision.barcode.common.Barcode;
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanner;
 import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions;
@@ -106,52 +105,39 @@ public class TelaEventos extends AppCompatActivity {
 
                 scanner.startScan()
                         .addOnSuccessListener(barcode -> {
-                            String conteudoQr = barcode.getRawValue();
+                            String urlEscaneada = barcode.getRawValue();
 
-                            if (conteudoQr != null && !conteudoQr.isEmpty()) {
+                            if (urlEscaneada != null && !urlEscaneada.isEmpty()) {
 
-                                // CASO 1: O QR Code é um link de internet externo
-                                if (conteudoQr.startsWith("http://") || conteudoQr.startsWith("https://")) {
+                                // IMPORTANTE: Defina aqui a mesma URL base usada na geração do QR Code do Host
+                                String linkDoSeuFormulario = "https://seuformulario.com/evento=";
+
+                                // CASO 1: O QR Code lido pertence ao formulário web do seu ecossistema
+                                if (urlEscaneada.startsWith(linkDoSeuFormulario)) {
+
+                                    // Extrai o ID do evento contido logo após o "="
+                                    String idEventoExtraido = urlEscaneada.replace(linkDoSeuFormulario, "");
+
+                                    // Abre a tela do Formulário de Presença nativa interna do app
+                                    Intent intentForm = new Intent(TelaEventos.this, FormularioPresenca.class);
+                                    intentForm.putExtra("id", idEventoExtraido);
+                                    startActivity(intentForm);
+
+                                    // CASO 2: É qualquer outra URL genérica da internet
+                                } else if (urlEscaneada.startsWith("http://") || urlEscaneada.startsWith("https://")) {
                                     androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(TelaEventos.this);
                                     builder.setTitle("Deseja ser redirecionado?");
-                                    builder.setMessage("Link: " + conteudoQr);
+                                    builder.setMessage("Link: " + urlEscaneada);
                                     builder.setPositiveButton("Sim", (dialog, which) -> {
                                         Intent intentNavegador = new Intent(Intent.ACTION_VIEW);
-                                        intentNavegador.setData(android.net.Uri.parse(conteudoQr));
+                                        intentNavegador.setData(android.net.Uri.parse(urlEscaneada));
                                         startActivity(intentNavegador);
                                     });
                                     builder.setNegativeButton("Não", (dialog, which) -> dialog.dismiss());
                                     builder.show();
 
                                 } else {
-                                    // CASO 2: O QR Code é o ID de validação do Evento (Check-in)
-                                    String idEventoEscaneado = conteudoQr;
-
-                                    androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(TelaEventos.this);
-                                    builder.setTitle("Validar Acesso");
-                                    builder.setMessage("Deseja confirmar sua presença neste evento?");
-
-                                    builder.setPositiveButton("Confirmar", (dialog, which) -> {
-                                        // Dados do participante unificados (Modificar futuramente para puxar dados do login)
-                                        String dadosParticipante = "Aluno Fatec (aluno@fatec.edu.br)";
-
-                                        // Salva na mesma estrutura esperada pelo EventoDAO.obterParticipantes()
-                                        FirebaseDatabase.getInstance()
-                                                .getReference("eventos")
-                                                .child(idEventoEscaneado)
-                                                .child("participantes")
-                                                .push() // Garante uma chave única para a inscrição
-                                                .setValue(dadosParticipante)
-                                                .addOnSuccessListener(unused -> {
-                                                    Toast.makeText(this, "Acesso Liberado! Presença registrada.", Toast.LENGTH_LONG).show();
-                                                })
-                                                .addOnFailureListener(e -> {
-                                                    Toast.makeText(this, "Erro ao registrar presença no banco.", Toast.LENGTH_SHORT).show();
-                                                });
-                                    });
-
-                                    builder.setNegativeButton("Cancelar", (dialog, which) -> dialog.dismiss());
-                                    builder.show();
+                                    Toast.makeText(this, "QR Code inválido para este aplicativo.", Toast.LENGTH_LONG).show();
                                 }
                             }
                         })

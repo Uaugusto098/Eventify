@@ -152,9 +152,15 @@ public class TelaEvento extends AppCompatActivity {
                 return true;
 
             } else if (menuItemId == R.id.nav_qrcode) {
-                // NOVA LÓGICA: Exibe o QR Code sobrepondo a tela
+                // ESTRATÉGIA ATUALIZADA: O Host agora gera um QR Code que é um Link Web contendo o ID do evento
                 if (id != null && !id.isEmpty()) {
-                    exibirDialogQrCode(id);
+
+                    // Substitua pelo link real da página web do formulário do seu grupo
+                    String linkFormularioWeb = "https://seuformulario.com/evento=" + id;
+
+                    // Envia o link completo para ser transformado em QR Code dentro do diálogo flutuante
+                    exibirDialogQrCode(linkFormularioWeb);
+
                 } else {
                     Toast.makeText(TelaEvento.this, "ID do evento inválido ou ausente.", Toast.LENGTH_SHORT).show();
                 }
@@ -177,9 +183,9 @@ public class TelaEvento extends AppCompatActivity {
         }
     }
 
-    private void exibirDialogQrCode(String idEvento) {
-        // Gera o QR Code
-        currentQrCodeBitmap = gerarQrCode(idEvento);
+    private void exibirDialogQrCode(String linkCompleto) {
+        // Agora ele gera o QR Code com a URL, permitindo que quem tem ou não o app consiga acessar
+        currentQrCodeBitmap = gerarQrCode(linkCompleto);
 
         if (currentQrCodeBitmap != null) {
             // 1. Criar o construtor do AlertDialog
