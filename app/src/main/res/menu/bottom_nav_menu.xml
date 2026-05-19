@@ -17,8 +17,5 @@
         android:title=""
         android:visible="false"
         android:checked="true" />
-<<<<<<< Updated upstream
 
-=======
->>>>>>> Stashed changes
 </menu>

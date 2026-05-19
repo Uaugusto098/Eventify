@@ -14,11 +14,7 @@
         android:visible="false"
         android:checked="true" />
 
-    <item
-        android:id="@+id/nav_placeholder"
-        android:title=""
-        android:visible="false"
-        android:checked="true" />
+
 
 
 </menu>
