@@ -8,6 +8,11 @@
         android:id="@+id/nav_qrcode"
         android:icon="@drawable/qr_code_scanner_24dp_e3e3e3_fill0_wght400_grad0_opsz24"
         android:title="Exibir QrCode" />
+    <item
+        android:id="@+id/nav_placeholder"
+        android:title=""
+        android:visible="false"
+        android:checked="true" />
 
     <item
         android:id="@+id/nav_placeholder"
