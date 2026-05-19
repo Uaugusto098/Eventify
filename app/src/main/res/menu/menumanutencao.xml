@@ -3,7 +3,7 @@
     <item
         android:id="@+id/nav_listar"
         android:icon="@drawable/ic_listar"
-        android:title="Listar" />
+        android:title="Relatório" />
     <item
         android:id="@+id/nav_qrcode"
         android:icon="@drawable/qr_code_scanner_24dp_e3e3e3_fill0_wght400_grad0_opsz24"

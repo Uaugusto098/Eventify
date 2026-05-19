@@ -5,7 +5,6 @@ import static android.view.View.VISIBLE;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -16,10 +15,8 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-// Importe seu DAO e sua Model
-import com.example.eventlyapp.EventoDAO;
-import com.example.eventlyapp.Evento;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.mlkit.vision.barcode.common.Barcode;
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanner;
 import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions;
@@ -32,14 +29,11 @@ public class TelaEventos extends AppCompatActivity {
 
     private ListView lsvDados;
     private ImageView imgNenhumEvento;
-    private ArrayList<String> nomesEventos; // Lista de strings para o ArrayAdapter simples
+    private ArrayList<String> nomesEventos;
     private EventoAdapter adapter;
     private EventoDAO dao;
 
-
     private List<Evento> listaCompletaEventos = new ArrayList<>();
-
-
     private Intent it;
 
     @Override
@@ -48,78 +42,39 @@ public class TelaEventos extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_tela_eventos);
 
+        // Ajuste de preenchimento para respeitar as barras de sistema e esticar a Navbar azul
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-
-            // 1. Mantém o padding no topo, esquerda e direita. Mas o BOTTOM (fundo) fica ZERO!
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, 0);
-
-            // 2. Pega a sua BottomNavigationView
-            com.google.android.material.bottomnavigation.BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
-
-            // 3. Aplica o padding do sistema apenas DENTRO dela, para ela esticar a cor azul até o fim
+            BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
             bottomNav.setPadding(0, 0, 0, systemBars.bottom);
-
             return insets;
         });
 
         // 1. Inicializar componentes da UI
-
         imgNenhumEvento = findViewById(R.id.imgNenhumEvento);
         lsvDados = findViewById(R.id.lsvEventos);
 
-        // 2. Inicializar a lista e o Adapter (começa vazia)
+        // 2. Inicializar a lista e o Adapter vinculado
         nomesEventos = new ArrayList<>();
         adapter = new EventoAdapter(this, listaCompletaEventos);
         lsvDados.setAdapter(adapter);
 
-
-        // 3. Chamar o banco de dados
+        // 3. Inicializar o Banco de Dados (DAO)
         dao = new EventoDAO();
 
-        /*
-        dao.limparTudo();
-        String[] tiposDeEventos = {"Show de Rock", "Palestra Tech", "Workshop Culinária", "Stand-up Comedy", "Hackathon", "Feira de Livros"};
-        String[] datas = {"20/05/2026", "12/06/2026", "05/07/2026", "18/08/2026", "30/09/2026", "10/10/2026"};
-        String[] descricoes = {
-                "Uma noite inesquecível com as melhores bandas locais.",
-                "Tudo sobre as novas tendências de Inteligência Artificial.",
-                "Aprenda a fazer massas artesanais com um Chef profissional.",
-                "Prepare-se para rir muito com os melhores comediantes.",
-                "48 horas de programação intensa e muita pizza.",
-                "Milhares de títulos com descontos incríveis para leitores."
-        };
-
-// 2. Rodamos o loop (aumentei para 6 para usar todos os dados acima)
-        for (int i = 0; i < 6; i++) {
-            Evento ev = new Evento();
-
-            // O operador % (módulo) garante que não dê erro se o loop for maior que a lista
-            ev.setNome(tiposDeEventos[i % tiposDeEventos.length]);
-            ev.setData(datas[i % datas.length]);
-            ev.setDescricao(descricoes[i % descricoes.length]);
-
-            // Se você tiver um campo de imagem, pode setar um placeholder ou algo assim:
-            // ev.setImagemUri("android.resource://com.example.eventlyapp/" + R.drawable.logoapp);
-
-            dao.salvar(ev);
-        }
-         */
-
-
-
-
+        // 4. Clique em um evento da lista para abrir os detalhes (TelaEvento)
         lsvDados.setOnItemClickListener((parent, view, position, id) -> {
-            // Pega o objeto que foi clicado
             Evento clienteClicado = listaCompletaEventos.get(position);
-            // Exemplo: Mostrar o nome do cliente ou abrir uma nova tela
-            it =  new Intent(getApplicationContext(), TelaEvento.class);
-            if(clienteClicado.getDescricao().equals("Evento sem descrição")){
+            it = new Intent(getApplicationContext(), TelaEvento.class);
+
+            if ("Evento sem descrição".equals(clienteClicado.getDescricao())) {
                 clienteClicado.setDescricao("");
             }
-            if(clienteClicado.getData().equals("Sem data marcada")){
+            if ("Sem data marcada".equals(clienteClicado.getData())) {
                 clienteClicado.setData("");
             }
+
             it.putExtra("id", clienteClicado.getId());
             it.putExtra("nome", clienteClicado.getNome());
             it.putExtra("data", clienteClicado.getData());
@@ -128,67 +83,76 @@ public class TelaEventos extends AppCompatActivity {
 
             startActivity(it);
         });
-        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
 
+        // 5. Configuração das ações da barra de navegação inferior (Navbar)
+        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
 
             if (id == R.id.nav_adicionar) {
-                // Ação quando clicar em "Meus Eventos"
-                // Exemplo: recarregar sua lista do banco
+                // Abre a tela de cadastro de novos eventos
                 it = new Intent(TelaEventos.this, TelaCadastrarEvento.class);
                 startActivity(it);
                 return true;
 
             } else if (id == R.id.nav_camera) {
-                // 1. Configurar as opções (apenas QR Code para ser mais rápido)
+                // Configuração do leitor de QR Code (Otimizado)
                 GmsBarcodeScannerOptions options = new GmsBarcodeScannerOptions.Builder()
                         .setBarcodeFormats(Barcode.FORMAT_QR_CODE)
-                        .enableAutoZoom() // Ajuda se o QR estiver longe
+                        .enableAutoZoom()
                         .build();
 
-                // 2. Inicializar o Scanner
                 GmsBarcodeScanner scanner = GmsBarcodeScanning.getClient(TelaEventos.this, options);
 
-                // 3. Abrir a câmera e processar o resultado
                 scanner.startScan()
                         .addOnSuccessListener(barcode -> {
-                            // 1. Pega o link que está dentro do QR Code
-                            String url = barcode.getRawValue();
+                            String conteudoQr = barcode.getRawValue();
 
-                            // 2. Verifica se o valor realmente parece um link (começa com http)
-                            if (url != null && (url.startsWith("http://") || url.startsWith("https://"))) {
+                            if (conteudoQr != null && !conteudoQr.isEmpty()) {
 
-                                androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(TelaEventos.this);
+                                // CASO 1: O QR Code é um link de internet externo
+                                if (conteudoQr.startsWith("http://") || conteudoQr.startsWith("https://")) {
+                                    androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(TelaEventos.this);
+                                    builder.setTitle("Deseja ser redirecionado?");
+                                    builder.setMessage("Link: " + conteudoQr);
+                                    builder.setPositiveButton("Sim", (dialog, which) -> {
+                                        Intent intentNavegador = new Intent(Intent.ACTION_VIEW);
+                                        intentNavegador.setData(android.net.Uri.parse(conteudoQr));
+                                        startActivity(intentNavegador);
+                                    });
+                                    builder.setNegativeButton("Não", (dialog, which) -> dialog.dismiss());
+                                    builder.show();
 
-                                // 2. Configurar o título e a mensagem
-                                builder.setTitle("Deseja ser redirecionado?");
-                                builder.setMessage("Link:"+ url);
+                                } else {
+                                    // CASO 2: O QR Code é o ID de validação do Evento (Check-in)
+                                    String idEventoEscaneado = conteudoQr;
 
-                                // 3. Botão de confirmação (Sim)
-                                builder.setPositiveButton("Sim", (dialog, which) -> {
-                                    // Se clicar em sim, ele executa a sua lógica de sair
-                                    Intent intentNavegador = new Intent(Intent.ACTION_VIEW);
-                                    intentNavegador.setData(android.net.Uri.parse(url));
+                                    androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(TelaEventos.this);
+                                    builder.setTitle("Validar Acesso");
+                                    builder.setMessage("Deseja confirmar sua presença neste evento?");
 
-                                    // 4. Inicia a atividade (abre o Chrome/Samsung Internet, etc.)
-                                    startActivity(intentNavegador);
-                                });
+                                    builder.setPositiveButton("Confirmar", (dialog, which) -> {
+                                        // Dados do participante unificados (Modificar futuramente para puxar dados do login)
+                                        String dadosParticipante = "Aluno Fatec (aluno@fatec.edu.br)";
 
-                                // 4. Botão de cancelamento (Não)
-                                builder.setNegativeButton("Não", (dialog, which) -> {
-                                    // Se clicar em não, apenas fecha o card e não faz nada
-                                    dialog.dismiss();
-                                });
+                                        // Salva na mesma estrutura esperada pelo EventoDAO.obterParticipantes()
+                                        FirebaseDatabase.getInstance()
+                                                .getReference("eventos")
+                                                .child(idEventoEscaneado)
+                                                .child("participantes")
+                                                .push() // Garante uma chave única para a inscrição
+                                                .setValue(dadosParticipante)
+                                                .addOnSuccessListener(unused -> {
+                                                    Toast.makeText(this, "Acesso Liberado! Presença registrada.", Toast.LENGTH_LONG).show();
+                                                })
+                                                .addOnFailureListener(e -> {
+                                                    Toast.makeText(this, "Erro ao registrar presença no banco.", Toast.LENGTH_SHORT).show();
+                                                });
+                                    });
 
-                                // 5. Exibir o card na tela
-                                builder.show();
-                                // 3. Cria a Intent de visualização
-
-
-                            } else {
-                                // Se o QR Code for apenas um texto e não um link
-                                Toast.makeText(this, "Conteúdo do QR não é um link: " + url, Toast.LENGTH_LONG).show();
+                                    builder.setNegativeButton("Cancelar", (dialog, which) -> dialog.dismiss());
+                                    builder.show();
+                                }
                             }
                         })
                         .addOnFailureListener(e -> {
@@ -198,28 +162,18 @@ public class TelaEventos extends AppCompatActivity {
                 return true;
 
             } else if (id == R.id.nav_sair) {
-                // Ação quando clicar em "sair"
+                // Caixa de diálogo para logout seguro da conta
                 androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(TelaEventos.this);
-
-                // 2. Configurar o título e a mensagem
                 builder.setTitle("Sair da Conta");
                 builder.setMessage("Deseja realmente sair da sua conta?");
 
-                // 3. Botão de confirmação (Sim)
                 builder.setPositiveButton("Sim", (dialog, which) -> {
-                    // Se clicar em sim, ele executa a sua lógica de sair
                     Intent intentSair = new Intent(TelaEventos.this, TelaLoginCadastro.class);
                     startActivity(intentSair);
-                    finish(); // Fecha a tela atual para ele não conseguir voltar no botão "back"
+                    finish();
                 });
 
-                // 4. Botão de cancelamento (Não)
-                builder.setNegativeButton("Não", (dialog, which) -> {
-                    // Se clicar em não, apenas fecha o card e não faz nada
-                    dialog.dismiss();
-                });
-
-                // 5. Exibir o card na tela
+                builder.setNegativeButton("Não", (dialog, which) -> dialog.dismiss());
                 builder.show();
 
                 return true;
@@ -229,10 +183,8 @@ public class TelaEventos extends AppCompatActivity {
         });
     }
 
+    // Método responsável por buscar os dados no Firebase de forma síncrona/cacheada
     private void atualizarListaDoBanco() {
-        // 1. Mostra o loading e esconde a lista/imagem vazia antes de buscar
-
-
         imgNenhumEvento.setVisibility(GONE);
 
         dao.obterTodos(new EventoDAO.EventoCallback() {
@@ -241,7 +193,6 @@ public class TelaEventos extends AppCompatActivity {
                 listaCompletaEventos.clear();
                 listaCompletaEventos.addAll(listaRecebida);
                 adapter.notifyDataSetChanged();
-
 
                 if (listaCompletaEventos.isEmpty()) {
                     imgNenhumEvento.setVisibility(VISIBLE);
@@ -253,11 +204,11 @@ public class TelaEventos extends AppCompatActivity {
             }
         });
     }
+
     @Override
     protected void onResume() {
-        super.onResume(); // Pronto, agora está correto!
-
-        // Recarrega a lista toda vez que a tela voltar a ficar ativa
+        super.onResume();
+        // Garante que a lista atualize sempre que o usuário voltar para essa tela
         atualizarListaDoBanco();
     }
 }

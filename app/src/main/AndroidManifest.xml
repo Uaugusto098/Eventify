@@ -12,7 +12,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.EventlyApp">
         <activity
-            android:name=".FormularioPresenca"
+            android:name=".TelaListar"
             android:exported="false" />
         <activity
             android:name=".TelaEventos"

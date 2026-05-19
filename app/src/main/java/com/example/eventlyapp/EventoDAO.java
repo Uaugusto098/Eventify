@@ -61,4 +61,32 @@ public class EventoDAO {
     public interface EventoCallback {
         void onSucesso(List<Evento> lista);
     }
+
+
+    // Adicione este metodo dentro da sua classe EventoDAO
+    public void obterParticipantes(String eventoId, final ParticipantesCallback callback) {
+        // Acessa o nó: eventos -> id_do_evento -> participantes
+        database.child(eventoId).child("participantes").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                List<String> participantes = new ArrayList<>();
+                for (DataSnapshot data : snapshot.getChildren()) {
+                    // Assume que o valor guardado é o nome do participante (String)
+                    String nome = data.getValue(String.class);
+                    participantes.add(nome);
+                }
+                callback.onSucesso(participantes);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+                // Tratar erro de permissão ou conexão aqui
+            }
+        });
+    }
+
+    // Interface para o retorno dos participantes
+    public interface ParticipantesCallback {
+        void onSucesso(List<String> lista);
+    }
 }
