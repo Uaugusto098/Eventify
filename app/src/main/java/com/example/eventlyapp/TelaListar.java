@@ -17,22 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
-import javax.mail.Authenticator;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
-
-import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import javax.mail.Authenticator;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -112,6 +97,8 @@ public class TelaListar extends AppCompatActivity {
     }
 
 
+// ... resto dos imports da sua classe
+
 
 // ... resto dos imports da sua classe
 
@@ -121,14 +108,16 @@ public class TelaListar extends AppCompatActivity {
             return;
         }
 
-        // 1. Extrair os e-mails
         List<String> listaEmails = new ArrayList<>();
+
+        // 1. Extrair os e-mails de dentro da String "Nome (email@teste.com)"
         for (String participante : dados) {
             if (participante.contains("(") && participante.contains(")")) {
                 int start = participante.indexOf("(") + 1;
                 int end = participante.indexOf(")");
                 String emailExtraido = participante.substring(start, end).trim();
 
+                // Validação simples para garantir que pegamos um e-mail válido
                 if (!emailExtraido.isEmpty() && emailExtraido.contains("@")) {
                     listaEmails.add(emailExtraido);
                 }
@@ -140,72 +129,33 @@ public class TelaListar extends AppCompatActivity {
             return;
         }
 
-        // Troca o texto do botão para mostrar que está processando
-        Button btnRelatorio = findViewById(R.id.btnImprimirTodos);
-        btnRelatorio.setText("ENVIANDO...");
-        btnRelatorio.setEnabled(false);
+        // 2. Converter a lista de e-mails para o Array de Strings exigido pela Intent
+        String[] emailsBcc = listaEmails.toArray(new String[0]);
 
-        // 2. Executar o envio em segundo plano para não travar a tela
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        executor.execute(() -> {
-            boolean sucesso = enviarEmailJavaMail(listaEmails);
+        // 3. Construção do texto da mensagem
+        StringBuilder corpo = new StringBuilder();
+        corpo.append("Olá!\n\n");
+        corpo.append("Obrigado por participar do evento: ").append(nomeEvento).append("\n\n");
+        corpo.append("Detalhes: ").append(detalhesEvento).append("\n\n");
+        corpo.append("Atenciosamente,\nOrganização do Evento.");
 
-            // 3. Voltar para a Thread principal para atualizar a interface (Toast e Botão)
-            runOnUiThread(() -> {
-                btnRelatorio.setText("ENVIAR E-MAIL");
-                btnRelatorio.setEnabled(true);
+        // 4. Criar a Intent para abrir o aplicativo de E-mail externo
+        Intent intent = new Intent(Intent.ACTION_SENDTO);
+        intent.setData(android.net.Uri.parse("mailto:")); // Filtra para abrir apenas apps de e-mail
 
-                if (sucesso) {
-                    Toast.makeText(this, "E-mails enviados com sucesso!", Toast.LENGTH_LONG).show();
-                } else {
-                    Toast.makeText(this, "Erro ao enviar e-mails. Verifique as credenciais.", Toast.LENGTH_LONG).show();
-                }
-            });
-        });
-    }
+        // Adiciona as informações pré-definidas
+        intent.putExtra(Intent.EXTRA_BCC, emailsBcc); // Adiciona todos os participantes em Cópia Oculta
+        intent.putExtra(Intent.EXTRA_SUBJECT, "Agradecimento pela presença: " + nomeEvento);
+        intent.putExtra(Intent.EXTRA_TEXT, corpo.toString());
 
-    private boolean enviarEmailJavaMail(List<String> listaEmails) {
-        // --- COLOQUE SUAS CREDENCIAIS AQUI ---
-        final String remetenteEmail = "SEU_EMAIL@gmail.com";
-        final String remetenteSenha = "SUA_SENHA_DE_APP_DE_16_DIGITOS"; // A senha gerada no Google
-
-        Properties props = new Properties();
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.smtp.host", "smtp.gmail.com");
-        props.put("mail.smtp.port", "587");
-
-        Session session = Session.getInstance(props, new Authenticator() {
-            @Override
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(remetenteEmail, remetenteSenha);
-            }
-        });
-
+        // 5. Redirecionar o usuário para o app de e-mail escolhido
         try {
-            Message message = new MimeMessage(session);
-            message.setFrom(new InternetAddress(remetenteEmail));
-
-            // Define o assunto e corpo
-            message.setSubject("Agradecimento pela presença: " + nomeEvento);
-            String corpo = "Olá!\n\n" +
-                    "Obrigado por participar do evento: " + nomeEvento + "\n\n" +
-                    "Detalhes: " + detalhesEvento + "\n\n" +
-                    "Atenciosamente,\nOrganização do Evento.";
-            message.setText(corpo);
-
-            // Adiciona todos os e-mails como Cópia Oculta (BCC)
-            for (String emailDestino : listaEmails) {
-                message.addRecipient(Message.RecipientType.BCC, new InternetAddress(emailDestino));
-            }
-
-            // Dispara o e-mail via servidor SMTP
-            Transport.send(message);
-            return true; // Sucesso
-
-        } catch (MessagingException e) {
-            e.printStackTrace();
-            return false; // Falha
+            startActivity(intent);
+        } catch (Exception e) {
+            Toast.makeText(this, "Erro ao abrir o aplicativo de e-mail.", Toast.LENGTH_SHORT).show();
         }
     }
 }
+
+
+
