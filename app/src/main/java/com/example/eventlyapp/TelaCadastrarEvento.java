@@ -1,4 +1,5 @@
 package com.example.eventlyapp;
+import com.example.eventlyapp.EventoDAO;
 
 import android.os.Bundle;
 import android.view.View;
@@ -15,10 +16,11 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import android.net.Uri;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.ImageView;
 
 import com.google.android.material.textfield.TextInputEditText;
-
-import java.util.Date;
 
 public class TelaCadastrarEvento extends AppCompatActivity {
 
@@ -51,13 +53,13 @@ public class TelaCadastrarEvento extends AppCompatActivity {
         });
 
 
-         dao=new EventoDAO();
+        dao=new EventoDAO();
         btnBack=findViewById(R.id.btnBack);
         cadastrarEventos=findViewById(R.id.cadastrarEventos);
         imageAdd=findViewById(R.id.imageAdd);
-         inputNome = findViewById(R.id.info1Input); // ID do EditText, não do Layout
-         inputData = findViewById(R.id.info2Input);
-         inputDesc = findViewById(R.id.info3Input);
+        inputNome = findViewById(R.id.info1Input); // ID do EditText, não do Layout
+        inputData = findViewById(R.id.info2Input);
+        inputDesc = findViewById(R.id.info3Input);
         imagemUser= registerForActivityResult(new ActivityResultContracts.GetContent(), new ActivityResultCallback<Uri>() {
             @Override
             public void onActivityResult(Uri select) {
@@ -93,14 +95,10 @@ public class TelaCadastrarEvento extends AppCompatActivity {
                 // 1. Trava o botão imediatamente no primeiro clique para evitar duplicação
                 cadastrarEventos.setEnabled(false);
 
-<<<<<<< HEAD
-
-=======
                 // 2. Pega os textos e tira os espaços em branco do começo/fim com trim()
                 String nomeStr = inputNome.getText().toString().trim();
                 String dataStr = inputData.getText().toString().trim();
                 String descStr = inputDesc.getText().toString().trim();
->>>>>>> 8769d8595f72ce50153ac06608e6abb398bafdd2
 
                 // 3. Valida se o usuário esqueceu de colocar o nome
                 if (nomeStr.isEmpty()) {
@@ -116,13 +114,7 @@ public class TelaCadastrarEvento extends AppCompatActivity {
             }
         });
     }
-<<<<<<< HEAD
-    public void capturarDados(String nome, String data, String desc){
-
-
-=======
     public void capturarDados(String nome, String data, String desc) {
->>>>>>> 8769d8595f72ce50153ac06608e6abb398bafdd2
         user.setNome(nome);
 
         // Verifica a data usando a string recebida no parâmetro
