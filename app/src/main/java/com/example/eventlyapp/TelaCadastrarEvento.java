@@ -1,5 +1,4 @@
 package com.example.eventlyapp;
-import com.example.eventlyapp.EventoDAO;
 
 import android.os.Bundle;
 import android.view.View;
@@ -16,11 +15,10 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import android.net.Uri;
-import android.os.Bundle;
-import android.view.View;
-import android.widget.ImageView;
 
 import com.google.android.material.textfield.TextInputEditText;
+
+import java.util.Date;
 
 public class TelaCadastrarEvento extends AppCompatActivity {
 
@@ -93,7 +91,7 @@ public class TelaCadastrarEvento extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-              
+
 
                 capturarDados(
                         inputNome.getText().toString(),
@@ -108,7 +106,8 @@ public class TelaCadastrarEvento extends AppCompatActivity {
             }
         });
     }
-    public void capturarDados(String nome,String data, String desc){
+    public void capturarDados(String nome, String data, String desc){
+
 
         user.setNome(nome);
         user.setData(data);

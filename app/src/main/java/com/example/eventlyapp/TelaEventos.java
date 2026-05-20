@@ -86,6 +86,7 @@ public class TelaEventos extends AppCompatActivity {
         // 5. Configuração das ações da barra de navegação inferior (Navbar)
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
         bottomNav.setOnItemSelectedListener(item -> {
+
             int id = item.getItemId();
 
             if (id == R.id.nav_adicionar) {
