@@ -2,6 +2,8 @@ package com.example.eventlyapp;
 import com.example.eventlyapp.EventoDAO;
 
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -60,6 +62,34 @@ public class TelaCadastrarEvento extends AppCompatActivity {
         inputNome = findViewById(R.id.info1Input); // ID do EditText, não do Layout
         inputData = findViewById(R.id.info2Input);
         inputDesc = findViewById(R.id.info3Input);
+
+        inputData.addTextChangedListener(new TextWatcher() {
+            private boolean isFormatting = false;
+            private String anterior = "";
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (isFormatting) return;
+                isFormatting = true;
+
+                String texto = s.toString().replaceAll("[^0-9]", ""); // só números
+
+                StringBuilder formatado = new StringBuilder();
+                for (int i = 0; i < texto.length(); i++) {
+                    if (i == 2 || i == 4) formatado.append("/"); // dd/MM/yyyy
+                    formatado.append(texto.charAt(i));
+                }
+
+                s.replace(0, s.length(), formatado.toString());
+                isFormatting = false;
+            }
+        });
         imagemUser= registerForActivityResult(new ActivityResultContracts.GetContent(), new ActivityResultCallback<Uri>() {
             @Override
             public void onActivityResult(Uri select) {

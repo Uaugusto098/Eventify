@@ -109,7 +109,9 @@
                 android:id="@+id/dataInput"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="#FFFFFF" />
+                android:inputType="datetime|date"
+                android:textColor="#FFFFFF"
+                android:maxLength="10"/>
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout

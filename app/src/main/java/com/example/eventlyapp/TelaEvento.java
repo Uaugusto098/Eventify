@@ -6,6 +6,8 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -94,6 +96,34 @@ public class TelaEvento extends AppCompatActivity {
         descricaoInput.setText(descricaoOriginal);
         nomeInput.setText(nomeOriginal);
         dataInput.setText(dataOriginal);
+
+        dataInput.addTextChangedListener(new TextWatcher() {
+            private boolean isFormatting = false;
+            private String anterior = "";
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (isFormatting) return;
+                isFormatting = true;
+
+                String texto = s.toString().replaceAll("[^0-9]", ""); // só números
+
+                StringBuilder formatado = new StringBuilder();
+                for (int i = 0; i < texto.length(); i++) {
+                    if (i == 2 || i == 4) formatado.append("/"); // dd/MM/yyyy
+                    formatado.append(texto.charAt(i));
+                }
+
+                s.replace(0, s.length(), formatado.toString());
+                isFormatting = false;
+            }
+        });
 
         // Botões Alterar e Excluir
         Button btnExcluir = findViewById(R.id.btnExcluir);
