@@ -61,15 +61,20 @@ public class TelaListar extends AppCompatActivity {
         adapter = new ParticipanteAdapter(dados);
         rvParticipantes.setAdapter(adapter);
 
-        // 4. Buscar dados REAIS no Firebase usando o ID capturado
+        // 4. Buscar dados REAIS no Firebase usando o caminho estruturado com o UID
         eventoDAO = new EventoDAO();
         if (eventoId != null && !eventoId.isEmpty()) {
-            eventoDAO.obterParticipantes(eventoId, new EventoDAO.ParticipantesCallback() {
+
+            // CAPTURA O UID DO ORGANIZADOR LOGADO
+            String uidOrganizador = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+            // Passamos o uidOrganizador e o eventoId para o método atualizado
+            eventoDAO.obterParticipantes(uidOrganizador, eventoId, new EventoDAO.ParticipantesCallback() {
                 @Override
                 public void onSucesso(List<String> lista) {
                     dados.clear();
                     dados.addAll(lista);
-                    adapter.notifyDataSetChanged(); // Notifica o RecyclerView para renderizar os itens
+                    adapter.notifyDataSetChanged(); // Notifica o RecyclerView para renderizar
                 }
             });
         } else {

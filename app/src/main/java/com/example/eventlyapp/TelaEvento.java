@@ -22,6 +22,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.zxing.BarcodeFormat;
 import com.journeyapps.barcodescanner.BarcodeEncoder;
 
@@ -155,8 +156,11 @@ public class TelaEvento extends AppCompatActivity {
                 // ESTRATÉGIA ATUALIZADA: O Host agora gera um QR Code que é um Link Web contendo o ID do evento
                 if (id != null && !id.isEmpty()) {
 
-                    // Substitua pelo link real da página web do formulário do seu grupo
-                    String linkFormularioWeb = "https://seuformulario.com/evento=" + id;
+                    // Importe o Firebase Auth no topo se necessário: com.google.firebase.auth.FirebaseAuth;
+                    String uidOrganizador = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+                    // O Link agora leva o UID do Host e o ID do Evento juntos!
+                    String linkFormularioWeb = "https://eventifyform.netlify.app/?uid=" + uidOrganizador + "&id=" + id;
 
                     // Envia o link completo para ser transformado em QR Code dentro do diálogo flutuante
                     exibirDialogQrCode(linkFormularioWeb);

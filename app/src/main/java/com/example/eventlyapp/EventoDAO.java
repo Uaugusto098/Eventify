@@ -76,24 +76,32 @@ public class EventoDAO {
     }
 
 
-    // Adicione este metodo dentro da sua classe EventoDAO
-    public void obterParticipantes(String eventoId, final ParticipantesCallback callback) {
-        // Acessa o nó: eventos -> id_do_evento -> participantes
-        database.child(eventoId).child("participantes").addValueEventListener(new ValueEventListener() {
+    public void obterParticipantes(String uidOrganizador, String eventoId, final ParticipantesCallback callback) {
+        // Alinha a rota com a nova árvore de regras: usuarios_eventos -> UID -> eventos -> ID -> participantes
+        com.google.firebase.database.DatabaseReference ref = com.google.firebase.database.FirebaseDatabase.getInstance()
+                .getReference("usuarios_eventos")
+                .child(uidOrganizador)
+                .child("eventos")
+                .child(eventoId)
+                .child("participantes");
+
+        ref.addValueEventListener(new com.google.firebase.database.ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot snapshot) {
-                List<String> participantes = new ArrayList<>();
-                for (DataSnapshot data : snapshot.getChildren()) {
-                    // Assume que o valor guardado é o nome do participante (String)
-                    String nome = data.getValue(String.class);
-                    participantes.add(nome);
+            public void onDataChange(com.google.firebase.database.DataSnapshot snapshot) {
+                List<String> listaParticipantes = new ArrayList<>();
+                for (com.google.firebase.database.DataSnapshot child : snapshot.getChildren()) {
+                    // Captura a string "Nome (email)" enviada pelo site
+                    String participante = child.getValue(String.class);
+                    if (participante != null) {
+                        listaParticipantes.add(participante);
+                    }
                 }
-                callback.onSucesso(participantes);
+                callback.onSucesso(listaParticipantes);
             }
 
             @Override
-            public void onCancelled(DatabaseError error) {
-                // Tratar erro de permissão ou conexão aqui
+            public void onCancelled(com.google.firebase.database.DatabaseError error) {
+                // Tratamento de erro opcional (pode deixar vazio ou colocar um Log)
             }
         });
     }

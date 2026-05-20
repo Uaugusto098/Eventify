@@ -109,19 +109,24 @@ public class TelaEventos extends AppCompatActivity {
 
                             if (urlEscaneada != null && !urlEscaneada.isEmpty()) {
 
-                                // IMPORTANTE: Defina aqui a mesma URL base usada na geração do QR Code do Host
-                                String linkDoSeuFormulario = "https://seuformulario.com/evento=";
+                                // O app agora checa o início estável do link que contém o parâmetro do UID
+                                String linkDoSeuFormulario = "https://eventifyform.netlify.app/?uid=";
 
-                                // CASO 1: O QR Code lido pertence ao formulário web do seu ecossistema
+                                // CASO 1: O QR Code lido pertence ao formulário do seu ecossistema
                                 if (urlEscaneada.startsWith(linkDoSeuFormulario)) {
 
-                                    // Extrai o ID do evento contido logo após o "="
-                                    String idEventoExtraido = urlEscaneada.replace(linkDoSeuFormulario, "");
+                                    // Usamos a classe Uri para extrair o valor de "id" de forma limpa e segura
+                                    android.net.Uri uri = android.net.Uri.parse(urlEscaneada);
+                                    String idEventoExtraido = uri.getQueryParameter("id");
 
-                                    // Abre a tela do Formulário de Presença nativa interna do app
-                                    Intent intentForm = new Intent(TelaEventos.this, FormularioPresenca.class);
-                                    intentForm.putExtra("id", idEventoExtraido);
-                                    startActivity(intentForm);
+                                    if (idEventoExtraido != null && !idEventoExtraido.isEmpty()) {
+                                        // Abre a tela do Formulário de Presença nativa interna do app
+                                        Intent intentForm = new Intent(TelaEventos.this, FormularioPresenca.class);
+                                        intentForm.putExtra("id", idEventoExtraido);
+                                        startActivity(intentForm);
+                                    } else {
+                                        Toast.makeText(this, "ID do evento não encontrado no QR Code.", Toast.LENGTH_LONG).show();
+                                    }
 
                                     // CASO 2: É qualquer outra URL genérica da internet
                                 } else if (urlEscaneada.startsWith("http://") || urlEscaneada.startsWith("https://")) {
@@ -169,7 +174,7 @@ public class TelaEventos extends AppCompatActivity {
         });
     }
 
-    // Método responsável por buscar os dados no Firebase de forma síncrona/cacheada
+    // Metodo responsável por buscar os dados no Firebase de forma síncrona/cacheada
     private void atualizarListaDoBanco() {
         imgNenhumEvento.setVisibility(GONE);
 
