@@ -91,45 +91,27 @@ public class TelaEvento extends AppCompatActivity {
             }
         });
 
+        // No seu btnAlterar.setOnClickListener:
         btnAlterar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(nomeInput.getText().toString().isEmpty()){
-                    Snackbar.make(findViewById(android.R.id.content), "Preencha o campo Nome para alterar!", Snackbar.LENGTH_LONG)
-                            .setBackgroundTint(Color.parseColor("#1D2F46"))
-                            .setTextColor(Color.WHITE)
-                            .show();
-                    return;
-                }
-                if(nomeInput.getText().toString().equals(nomeOriginal) && dataInput.getText().toString().equals(dataOriginal) && descricaoInput.getText().toString().equals(descricaoOriginal)){
-                    Snackbar.make(findViewById(android.R.id.content), "É preciso alterar pelo menos um campo para alterar ", Snackbar.LENGTH_LONG)
-                            .setBackgroundTint(Color.parseColor("#1D2F46"))
-                            .setTextColor(Color.WHITE)
-                            .show();
-                    return;
-                }
+                // ... (seus testes de validação)
 
                 androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(TelaEvento.this);
                 builder.setTitle("Alterar Evento");
                 builder.setMessage("Deseja realmente alterar o evento?");
                 builder.setPositiveButton("Sim", (dialog, which) -> {
                     EventoDAO dao = new EventoDAO();
-                    Evento evento = new Evento();
-                    evento.setId(id);
-                    evento.setNome(nomeInput.getText().toString());
 
-                    if (dataInput.getText().toString().isEmpty()){
-                        dataInput.setText("Sem data marcada");
-                    }
-                    if (descricaoInput.getText().toString().isEmpty()){
-                        descricaoInput.setText("Evento sem descrição");
-                    }
+                    // Chama o novo método que preserva os participantes
+                    dao.atualizarParcial(
+                            id,
+                            nomeInput.getText().toString(),
+                            dataInput.getText().toString(),
+                            descricaoInput.getText().toString(),
+                            img
+                    );
 
-                    evento.setData(dataInput.getText().toString());
-                    evento.setDescricao(descricaoInput.getText().toString());
-                    evento.setImagemUri(img);
-
-                    dao.salvar(evento);
                     finish();
                 });
                 builder.setNegativeButton("Não", (dialog, which) -> dialog.dismiss());

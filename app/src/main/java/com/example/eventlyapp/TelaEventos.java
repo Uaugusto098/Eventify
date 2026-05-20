@@ -119,14 +119,19 @@ public class TelaEventos extends AppCompatActivity {
                                     // Usamos a classe Uri para extrair o valor de "id" de forma limpa e segura
                                     android.net.Uri uri = android.net.Uri.parse(urlEscaneada);
                                     String idEventoExtraido = uri.getQueryParameter("id");
+                                    String uidOrganizadorExtraido = uri.getQueryParameter("uid"); // EXTRAINDO O UID!
 
-                                    if (idEventoExtraido != null && !idEventoExtraido.isEmpty()) {
-                                        // Abre a tela do Formulário de Presença nativa interna do app
+// Adicione essa trava para garantir que temos os dados necessários
+                                    if (idEventoExtraido != null && !idEventoExtraido.isEmpty() && uidOrganizadorExtraido != null) {
+
+                                        // Abre a tela do Formulário de Presença
                                         Intent intentForm = new Intent(TelaEventos.this, FormularioPresenca.class);
                                         intentForm.putExtra("id", idEventoExtraido);
+                                        intentForm.putExtra("organizadorUid", uidOrganizadorExtraido); // ENVIANDO O UID
                                         startActivity(intentForm);
+
                                     } else {
-                                        Toast.makeText(this, "ID do evento não encontrado no QR Code.", Toast.LENGTH_LONG).show();
+                                        Toast.makeText(this, "QR Code incompleto. ID ou UID não encontrados.", Toast.LENGTH_LONG).show();
                                     }
 
                                     // CASO 2: É qualquer outra URL genérica da internet
