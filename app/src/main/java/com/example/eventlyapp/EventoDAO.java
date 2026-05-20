@@ -39,6 +39,17 @@ public class EventoDAO {
         }
         database.child(evento.getId()).setValue(evento);
     }
+    public void atualizarParcial(String id, String nome, String data, String descricao, String imagemUri) {
+        // Cria um mapa com apenas o que queremos mudar
+        java.util.Map<String, Object> atualizacoes = new java.util.HashMap<>();
+        atualizacoes.put("nome", nome);
+        atualizacoes.put("data", data);
+        atualizacoes.put("descricao", descricao);
+        atualizacoes.put("imagemUri", imagemUri);
+
+        // Usa updateChildren para alterar só esses campos, sem tocar na pasta 'participantes'
+        database.child(id).updateChildren(atualizacoes);
+    }
 
     // DELETE
     public void deletar(Evento evento) {

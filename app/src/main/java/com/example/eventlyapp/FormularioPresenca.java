@@ -68,9 +68,14 @@ public class FormularioPresenca extends AppCompatActivity {
 
     private void confirmarPresenca() {
         String nome     = edtNome.getText().toString().trim();
-        String email    = edtEmail.getText().toString().trim();
+        String email = edtEmail.getText().toString().replaceAll("\\s", "");
         String cpf      = edtCpf.getText().toString().trim();
         String telefone = edtTelefone.getText().toString().trim();
+
+        if (eventoId == null || eventoId.isEmpty()) {
+            Toast.makeText(this, "Erro: ID do evento não encontrado. Tente escanear novamente.", Toast.LENGTH_LONG).show();
+            return; // Para a execução aqui e não cria o card fantasma
+        }
 
         if (!validarCampos(nome, email, cpf, telefone)) return;
 
@@ -83,13 +88,22 @@ public class FormularioPresenca extends AppCompatActivity {
         txtBtnConfirmar.setText("ENVIANDO...");
         txtErro.setVisibility(View.GONE);
 
-        // CORREÇÃO 2: Aponta exatamente para o nó estruturado no seu EventoDAO
-        // Caminho: eventos -> [id_do_evento] -> participantes -> [push_gerado]
+        // Pega o UID do usuário logado que está gerenciando o evento
+        String organizadorUid = getIntent().getStringExtra("organizadorUid");
+
+        if (organizadorUid == null || organizadorUid.isEmpty()) {
+            Toast.makeText(this, "Erro: Organizador não identificado.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Agora sim, aponta para o lugar certo: o banco do seu amigo
         DatabaseReference participantesRef = FirebaseDatabase.getInstance()
-                .getReference("eventos")
+                .getReference("usuarios_eventos")
+                .child(organizadorUid) // <--- O MÁGICO ESTÁ AQUI
+                .child("eventos")
                 .child(eventoId)
                 .child("participantes")
-                .push();
+                .push();;
 
         // Formata a String contendo Nome e Email combinados para ser lida como texto pelo relatório
         String stringParticipante = nome + " (" + email + ")";
