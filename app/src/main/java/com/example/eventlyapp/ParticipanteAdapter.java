@@ -22,7 +22,6 @@ public class ParticipanteAdapter extends RecyclerView.Adapter<ParticipanteAdapte
     @NonNull
     @Override
     public ParticipanteViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // Infla o layout do card (item_participante.xml)
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_participante, parent, false);
         return new ParticipanteViewHolder(view);
@@ -30,14 +29,25 @@ public class ParticipanteAdapter extends RecyclerView.Adapter<ParticipanteAdapte
 
     @Override
     public void onBindViewHolder(@NonNull ParticipanteViewHolder holder, int position) {
-        String nome = listaParticipantes.get(position);
-        holder.txtNome.setText(nome);
+        String participante = listaParticipantes.get(position);
 
-        // 3. Clique simplificado (Opcional)
-        // Como o relatório agora é geral, o clique no nome pode apenas mostrar um aviso
-        holder.itemView.setOnClickListener(v -> {
-            Toast.makeText(v.getContext(), "Participante: " + nome, Toast.LENGTH_SHORT).show();
-        });
+        if (participante.contains("(") && participante.contains(")")) {
+            int inicio = participante.indexOf("(");
+            int fim = participante.indexOf(")");
+
+            String nome = participante.substring(0, inicio).trim();
+            String email = participante.substring(inicio + 1, fim).trim();
+
+            holder.txtNome.setText(nome);
+            holder.txtEmail.setText(email);
+        } else {
+            holder.txtNome.setText(participante);
+            holder.txtEmail.setText(""); // ← evita NullPointerException
+        }
+
+        holder.itemView.setOnClickListener(v ->
+                Toast.makeText(v.getContext(), "Participante: " + participante, Toast.LENGTH_SHORT).show()
+        );
     }
 
     @Override
@@ -47,10 +57,12 @@ public class ParticipanteAdapter extends RecyclerView.Adapter<ParticipanteAdapte
 
     public static class ParticipanteViewHolder extends RecyclerView.ViewHolder {
         TextView txtNome;
+        TextView txtEmail; // ← adicionado
+
         public ParticipanteViewHolder(@NonNull View itemView) {
             super(itemView);
-            // Referência ao TextView do seu item_participante.xml
             txtNome = itemView.findViewById(R.id.txtNomeParticipante);
+            txtEmail = itemView.findViewById(R.id.txtEmailParticipante); // ← adicionado
         }
     }
 }

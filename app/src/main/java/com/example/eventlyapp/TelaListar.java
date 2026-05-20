@@ -97,11 +97,6 @@ public class TelaListar extends AppCompatActivity {
     }
 
 
-// ... resto dos imports da sua classe
-
-
-// ... resto dos imports da sua classe
-
     private void dispararEmailAutomatico() {
         if (dados.isEmpty()) {
             Toast.makeText(this, "Nenhum participante para enviar e-mail.", Toast.LENGTH_SHORT).show();
