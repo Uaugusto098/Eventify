@@ -90,43 +90,60 @@ public class TelaCadastrarEvento extends AppCompatActivity {
         cadastrarEventos.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                // 1. Trava o botão imediatamente no primeiro clique para evitar duplicação
+                cadastrarEventos.setEnabled(false);
 
+<<<<<<< HEAD
 
+=======
+                // 2. Pega os textos e tira os espaços em branco do começo/fim com trim()
+                String nomeStr = inputNome.getText().toString().trim();
+                String dataStr = inputData.getText().toString().trim();
+                String descStr = inputDesc.getText().toString().trim();
+>>>>>>> 8769d8595f72ce50153ac06608e6abb398bafdd2
 
-                capturarDados(
-                        inputNome.getText().toString(),
-                        inputData.getText().toString(),
-                        inputDesc.getText().toString()
+                // 3. Valida se o usuário esqueceu de colocar o nome
+                if (nomeStr.isEmpty()) {
+                    inputNome.setError("O nome do evento é obrigatório!");
+                    inputNome.requestFocus();
+                    cadastrarEventos.setEnabled(true); // Destrava o botão para ele tentar de novo
+                    return; // Interrompe o processo e não salva no banco
+                }
 
-                );
-
+                // 4. Se passou pela validação, manda salvar
+                capturarDados(nomeStr, dataStr, descStr);
                 finish();
-
-
             }
         });
     }
+<<<<<<< HEAD
     public void capturarDados(String nome, String data, String desc){
 
 
+=======
+    public void capturarDados(String nome, String data, String desc) {
+>>>>>>> 8769d8595f72ce50153ac06608e6abb398bafdd2
         user.setNome(nome);
-        user.setData(data);
-        user.setDescricao(desc);
 
-        if (inputData.getText().toString().isEmpty()){
-            inputData.setText("Sem data marcada");
-            user.setData(inputData.getText().toString());
+        // Verifica a data usando a string recebida no parâmetro
+        if (data.isEmpty()){
+            user.setData("Sem data marcada");
+        } else {
+            user.setData(data);
         }
-        if (inputDesc.getText().toString().isEmpty()){
-            inputDesc.setText("Evento sem descrição");
-            user.setDescricao(inputDesc.getText().toString());
+
+        // Verifica a descrição usando a string recebida no parâmetro
+        if (desc.isEmpty()){
+            user.setDescricao("Evento sem descrição");
+        } else {
+            user.setDescricao(desc);
         }
-        if(imageUriselect!=null)
-        {
+
+        if (imageUriselect != null) {
             user.setImagemUri(imageUriselect.toString());
         }
 
+        // Salva uma única vez!
         dao.salvar(user);
-
     }
 }

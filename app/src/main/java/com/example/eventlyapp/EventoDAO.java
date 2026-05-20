@@ -13,22 +13,23 @@ import java.util.List;
 public class EventoDAO {
         private DatabaseReference database;
 
-        public EventoDAO() {
-            // 1. Pega o usuário logado atualmente
-            FirebaseUser usuarioLogado = FirebaseAuth.getInstance().getCurrentUser();
+    public EventoDAO() {
+        // 1. Pega o usuário logado atualmente
+        FirebaseUser usuarioLogado = FirebaseAuth.getInstance().getCurrentUser();
 
-            if (usuarioLogado != null) {
-                String uidUsuario = usuarioLogado.getUid();
-                // 2. Aponta para: usuarios_eventos -> UID_DO_CARA -> (os eventos dele)
-                this.database = FirebaseDatabase.getInstance().getReference("usuarios_eventos").child(uidUsuario);
-            } else {
-                // Fallback de segurança: se por acaso tentar acessar sem logar (o que não deve acontecer no seu app)
-                this.database = FirebaseDatabase.getInstance().getReference("eventos_deslogados");
-            }
-
-            // Mantém este nó específico sempre sincronizado em segundo plano
-            this.database.keepSynced(true);
+        if (usuarioLogado != null) {
+            String uidUsuario = usuarioLogado.getUid();
+            // 2. Aponta para: usuarios_eventos -> UID_DO_CARA -> eventos
+            // A MÁGICA ESTÁ AQUI NO FINAL DA LINHA 👇
+            this.database = FirebaseDatabase.getInstance().getReference("usuarios_eventos").child(uidUsuario).child("eventos");
+        } else {
+            // Fallback de segurança: se por acaso tentar acessar sem logar (o que não deve acontecer no seu app)
+            this.database = FirebaseDatabase.getInstance().getReference("eventos_deslogados");
         }
+
+        // Mantém este nó específico sempre sincronizado em segundo plano
+        this.database.keepSynced(true);
+    }
 
     // CREATE / UPDATE
     public void salvar(Evento evento) {
