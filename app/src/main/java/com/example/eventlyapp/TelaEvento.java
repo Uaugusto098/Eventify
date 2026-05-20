@@ -1,8 +1,10 @@
 package com.example.eventlyapp;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,27 +14,50 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.dantsu.escposprinter.EscPosPrinter;
+import com.dantsu.escposprinter.connection.bluetooth.BluetoothConnection;
+import com.dantsu.escposprinter.connection.bluetooth.BluetoothPrintersConnections;
+import com.dantsu.escposprinter.textparser.PrinterTextParserImg;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.zxing.BarcodeFormat;
 import com.journeyapps.barcodescanner.BarcodeEncoder;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 public class TelaEvento extends AppCompatActivity {
+
+    private static final int REQ_BT_CONNECT = 1001;
+
+    // Executor para impressão (evita travar a UI)
+    private final ExecutorService printerExecutor = Executors.newSingleThreadExecutor();
+
+    // Guarda o bitmap pendente caso o usuário precise conceder permissão e tentar novamente
+    private Bitmap pendingPrintBitmap = null;
 
     private String id, img, nomeOriginal, dataOriginal, descricaoOriginal;
     private TextInputEditText descricaoInput, nomeInput, dataInput;
 
     // Bitmap global para guardar o QR Code gerado para impressão
     private Bitmap currentQrCodeBitmap;
+
+    // Array com as duas permissões necessárias para a biblioteca Dantsu funcionar no Android 12+
+    private final String[] permissoesBluetooth = new String[]{
+            Manifest.permission.BLUETOOTH_CONNECT,
+            Manifest.permission.BLUETOOTH_SCAN
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,8 +68,8 @@ public class TelaEvento extends AppCompatActivity {
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, 0);
-            BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
-            bottomNav.setPadding(0, 0, 0, systemBars.bottom);
+            BottomNavigationView bottomNavInset = findViewById(R.id.bottom_navigation);
+            bottomNavInset.setPadding(0, 0, 0, systemBars.bottom);
             return insets;
         });
 
@@ -53,6 +78,7 @@ public class TelaEvento extends AppCompatActivity {
         TextInputLayout descricaoInfo = findViewById(R.id.descricaoInfo);
         TextInputLayout nomeInfo = findViewById(R.id.nomeInfo);
         TextInputLayout dataInfo = findViewById(R.id.dataInfo);
+
         descricaoInput = findViewById(R.id.descricaoInput);
         nomeInput = findViewById(R.id.nomeInput);
         dataInput = findViewById(R.id.dataInput);
@@ -69,84 +95,63 @@ public class TelaEvento extends AppCompatActivity {
         nomeInput.setText(nomeOriginal);
         dataInput.setText(dataOriginal);
 
-        // Configuração dos botões Alterar e Excluir
+        // Botões Alterar e Excluir
         Button btnExcluir = findViewById(R.id.btnExcluir);
         Button btnAlterar = findViewById(R.id.btnAlterar);
 
-        btnExcluir.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(TelaEvento.this);
-                builder.setTitle("Excluir Evento");
-                builder.setMessage("Deseja realmente excluir o evento?");
-                builder.setPositiveButton("Sim", (dialog, which) -> {
-                    EventoDAO dao = new EventoDAO();
-                    Evento evento = new Evento();
-                    evento.setId(id);
-                    dao.deletar(evento);
-                    finish();
-                });
-                builder.setNegativeButton("Não", (dialog, which) -> dialog.dismiss());
-                builder.show();
-            }
+        btnExcluir.setOnClickListener(view -> {
+            AlertDialog.Builder builder = new AlertDialog.Builder(TelaEvento.this);
+            builder.setTitle("Excluir Evento");
+            builder.setMessage("Deseja realmente excluir o evento?");
+            builder.setPositiveButton("Sim", (dialog, which) -> {
+                EventoDAO dao = new EventoDAO();
+                Evento evento = new Evento();
+                evento.setId(id);
+                dao.deletar(evento);
+                finish();
+            });
+            builder.setNegativeButton("Não", (dialog, which) -> dialog.dismiss());
+            builder.show();
         });
 
-        // No seu btnAlterar.setOnClickListener:
-        btnAlterar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // ... (seus testes de validação)
-
-                androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(TelaEvento.this);
-                builder.setTitle("Alterar Evento");
-                builder.setMessage("Deseja realmente alterar o evento?");
-                builder.setPositiveButton("Sim", (dialog, which) -> {
-                    EventoDAO dao = new EventoDAO();
-
-                    // Chama o novo método que preserva os participantes
-                    dao.atualizarParcial(
-                            id,
-                            nomeInput.getText().toString(),
-                            dataInput.getText().toString(),
-                            descricaoInput.getText().toString(),
-                            img
-                    );
-
-                    finish();
-                });
-                builder.setNegativeButton("Não", (dialog, which) -> dialog.dismiss());
-                builder.show();
-            }
+        btnAlterar.setOnClickListener(view -> {
+            AlertDialog.Builder builder = new AlertDialog.Builder(TelaEvento.this);
+            builder.setTitle("Alterar Evento");
+            builder.setMessage("Deseja realmente alterar o evento?");
+            builder.setPositiveButton("Sim", (dialog, which) -> {
+                EventoDAO dao = new EventoDAO();
+                dao.atualizarParcial(
+                        id,
+                        nomeInput.getText() != null ? nomeInput.getText().toString() : "",
+                        dataInput.getText() != null ? dataInput.getText().toString() : "",
+                        descricaoInput.getText() != null ? descricaoInput.getText().toString() : "",
+                        img
+                );
+                finish();
+            });
+            builder.setNegativeButton("Não", (dialog, which) -> dialog.dismiss());
+            builder.show();
         });
 
-        // --- CONFIGURAÇÃO DO BOTTOM NAVIGATION VIEW (Ações da Barra Inferior) ---
+        // --- BOTTOM NAVIGATION ---
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
         bottomNav.setOnItemSelectedListener(item -> {
             int menuItemId = item.getItemId();
 
             if (menuItemId == R.id.nav_listar) {
-                // Abre a tela de listagem
                 Intent intentListar = new Intent(TelaEvento.this, TelaListar.class);
                 intentListar.putExtra("id", id);
-                intentListar.putExtra("nome", nomeInput.getText().toString());
-                intentListar.putExtra("descricao", descricaoInput.getText().toString());
+                intentListar.putExtra("nome", nomeInput.getText() != null ? nomeInput.getText().toString() : "");
+                intentListar.putExtra("descricao", descricaoInput.getText() != null ? descricaoInput.getText().toString() : "");
                 intentListar.putExtra("EMAIL_ORGANIZADOR", "organizador@fatec.com");
                 startActivity(intentListar);
                 return true;
 
             } else if (menuItemId == R.id.nav_qrcode) {
-                // ESTRATÉGIA ATUALIZADA: O Host agora gera um QR Code que é um Link Web contendo o ID do evento
                 if (id != null && !id.isEmpty()) {
-
-                    // Importe o Firebase Auth no topo se necessário: com.google.firebase.auth.FirebaseAuth;
                     String uidOrganizador = FirebaseAuth.getInstance().getCurrentUser().getUid();
-
-                    // O Link agora leva o UID do Host e o ID do Evento juntos!
                     String linkFormularioWeb = "https://eventifyform.netlify.app/?uid=" + uidOrganizador + "&id=" + id;
-
-                    // Envia o link completo para ser transformado em QR Code dentro do diálogo flutuante
                     exibirDialogQrCode(linkFormularioWeb);
-
                 } else {
                     Toast.makeText(TelaEvento.this, "ID do evento inválido ou ausente.", Toast.LENGTH_SHORT).show();
                 }
@@ -156,12 +161,11 @@ public class TelaEvento extends AppCompatActivity {
         });
     }
 
-    // --- MÉTODOS AUXILIARES: GERAÇÃO E EXIBIÇÃO EM DIÁLOGO SOBREPOSTO ---
+    // --- QR CODE ---
 
     private Bitmap gerarQrCode(String conteudo) {
         try {
             BarcodeEncoder barcodeEncoder = new BarcodeEncoder();
-            // Gera um QR Code de 500x500px para ficar bem visível no diálogo
             return barcodeEncoder.encodeBitmap(conteudo, BarcodeFormat.QR_CODE, 500, 500);
         } catch (Exception e) {
             e.printStackTrace();
@@ -170,55 +174,152 @@ public class TelaEvento extends AppCompatActivity {
     }
 
     private void exibirDialogQrCode(String linkCompleto) {
-        // Agora ele gera o QR Code com a URL, permitindo que quem tem ou não o app consiga acessar
         currentQrCodeBitmap = gerarQrCode(linkCompleto);
 
-        if (currentQrCodeBitmap != null) {
-            // 1. Criar o construtor do AlertDialog
-            AlertDialog.Builder builder = new AlertDialog.Builder(TelaEvento.this);
-
-            // 2. Inflar o layout customizado (dialog_qrcode.xml)
-            LayoutInflater inflater = this.getLayoutInflater();
-            View dialogView = inflater.inflate(R.layout.dialog_qrcode, null);
-            builder.setView(dialogView);
-
-            // 3. Inicializar as Views do layout inflado
-            ImageView imgQrCodeDialog = dialogView.findViewById(R.id.imgQrCodeDialog);
-            Button btnImprimirDialog = dialogView.findViewById(R.id.btnImprimirDialog);
-            Button btnFecharDialog = dialogView.findViewById(R.id.btnFecharDialog);
-
-            // 4. Injetar o QR Code gerado na ImageView do diálogo
-            imgQrCodeDialog.setImageBitmap(currentQrCodeBitmap);
-
-            // 5. Criar o AlertDialog
-            AlertDialog dialog = builder.create();
-
-            // 6. Configurar as ações dos botões dentro do diálogo
-            btnImprimirDialog.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    // Feedback de impressão
-                    Toast.makeText(TelaEvento.this, "Enviando para a impressora térmica...", Toast.LENGTH_SHORT).show();
-                    // Aqui entrará o comando físico da biblioteca (ex: printer.printImage(currentQrCodeBitmap);)
-                }
-            });
-
-            btnFecharDialog.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    dialog.dismiss(); // Fecha o diálogo flutuante
-                }
-            });
-
-            // 7. Exibir o diálogo (ele aparecerá por cima de toda a tela)
-            dialog.show();
-
-        } else {
+        if (currentQrCodeBitmap == null) {
             Toast.makeText(this, "Erro ao gerar a imagem do QR Code.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(TelaEvento.this);
+
+        LayoutInflater inflater = this.getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_qrcode, null);
+        builder.setView(dialogView);
+
+        ImageView imgQrCodeDialog = dialogView.findViewById(R.id.imgQrCodeDialog);
+        Button btnImprimirDialog = dialogView.findViewById(R.id.btnImprimirDialog);
+        Button btnFecharDialog = dialogView.findViewById(R.id.btnFecharDialog);
+
+        imgQrCodeDialog.setImageBitmap(currentQrCodeBitmap);
+
+        AlertDialog dialog = builder.create();
+
+        btnImprimirDialog.setOnClickListener(v -> {
+            Toast.makeText(TelaEvento.this, "Enviando para a impressora térmica...", Toast.LENGTH_SHORT).show();
+            imprimirQrCodeBluetooth(currentQrCodeBitmap);
+        });
+
+        btnFecharDialog.setOnClickListener(v -> dialog.dismiss());
+
+        dialog.show();
+    }
+
+    // --- PERMISSÃO BLUETOOTH (Android 12+) ---
+
+    private boolean garantirePermissaoBluetooth() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) { // Android 12+
+            // Verifica se alguma das duas permissões cruciais está faltando
+            boolean connectConcedido = ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED;
+            boolean scanConcedido = ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED;
+
+            if (!connectConcedido || !scanConcedido) {
+                // Solicita ambas em uma única caixa de diálogo para o usuário
+                ActivityCompat.requestPermissions(
+                        this,
+                        permissoesBluetooth,
+                        REQ_BT_CONNECT
+                );
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == REQ_BT_CONNECT) {
+            boolean todasConcedidas = true;
+
+            // Percorre o array para garantir que as duas permissões foram aceitas
+            if (grantResults.length > 0) {
+                for (int resultado : grantResults) {
+                    if (resultado != PackageManager.PERMISSION_GRANTED) {
+                        todasConcedidas = false;
+                        break;
+                    }
+                }
+            } else {
+                todasConcedidas = false;
+            }
+
+            if (todasConcedidas) {
+                Toast.makeText(this, "Permissões Bluetooth concedidas.", Toast.LENGTH_SHORT).show();
+
+                // Se tinha uma impressão aguardando a permissão terminar, dispara ela agora
+                if (pendingPrintBitmap != null) {
+                    Bitmap toPrint = pendingPrintBitmap;
+                    pendingPrintBitmap = null;
+                    imprimirQrCodeBluetooth(toPrint);
+                }
+            } else {
+                Toast.makeText(this, "Permissões negadas. É necessário aceitar Connect e Scan para imprimir.", Toast.LENGTH_LONG).show();
+            }
         }
     }
 
-    public void sair(View view){
+    // --- IMPRESSÃO BLUETOOTH ---
+
+    private void imprimirQrCodeBluetooth(Bitmap qrBitmap) {
+        if (qrBitmap == null) {
+            Toast.makeText(this, "QR Code inválido para impressão.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (!garantirePermissaoBluetooth()) {
+            pendingPrintBitmap = qrBitmap;
+            return;
+        }
+
+        printerExecutor.execute(() -> {
+            try {
+                // Seleciona a primeira impressora pareada (Agora com permissão de SCAN garantida)
+                BluetoothConnection connection = BluetoothPrintersConnections.selectFirstPaired();
+
+                if (connection == null) {
+                    runOnUiThread(() ->
+                            Toast.makeText(this, "Nenhuma impressora Bluetooth pareada encontrada.", Toast.LENGTH_LONG).show()
+                    );
+                    return;
+                }
+
+                // Configuração padrão para 58mm/203dpi
+                EscPosPrinter printer = new EscPosPrinter(connection, 203, 48f, 32);
+
+                // Ajusta a largura do bitmap para 58mm (geralmente 384px)
+                Bitmap scaled = Bitmap.createScaledBitmap(qrBitmap, 384, 384, false);
+
+                String hexImage = PrinterTextParserImg.bitmapToHexadecimalString(printer, scaled);
+
+                String payload =
+                        "[C]QR Code do Evento\n" +
+                                "[C]<img>" + hexImage + "</img>\n" +
+                                "[C]\n";
+
+                printer.printFormattedTextAndCut(payload, 50);
+
+                runOnUiThread(() ->
+                        Toast.makeText(this, "QR Code impresso com sucesso!", Toast.LENGTH_SHORT).show()
+                );
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                runOnUiThread(() ->
+                        Toast.makeText(this, "Erro ao imprimir: " + e.getMessage(), Toast.LENGTH_LONG).show()
+                );
+            }
+        });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        printerExecutor.shutdown();
+    }
+
+    public void sair(View view) {
         finish();
     }
 }
