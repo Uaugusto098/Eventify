@@ -27,6 +27,9 @@
             android:name=".TelaCadastrarEvento"
             android:exported="false" />
         <activity
+            android:name=".FormularioPresenca"
+            android:exported="false" />
+        <activity
             android:name=".TelaLoginCadastro"
             android:exported="true">
             <intent-filter>
