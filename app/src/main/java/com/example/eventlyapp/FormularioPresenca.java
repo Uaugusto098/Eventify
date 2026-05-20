@@ -18,6 +18,14 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import androidx.activity.EdgeToEdge;
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
+
 public class FormularioPresenca extends AppCompatActivity {
 
     private TextView txtSubtitulo, txtBtnConfirmar, txtErro;
@@ -29,20 +37,36 @@ public class FormularioPresenca extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_formulario_presenca);
+
+        getWindow().setStatusBarColor(
+                ContextCompat.getColor(this, R.color.AzulEscuro)
+        );
+
+        WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(
+                getWindow(), getWindow().getDecorView()
+        );
+        controller.setAppearanceLightStatusBars(false);
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            int dp25 = (int) (25 * getResources().getDisplayMetrics().density);
+            v.setPadding(dp25, systemBars.top + dp25, dp25, dp25);
+            return insets;
+        });
 
         inicializarViews();
 
-        // CORREÇÃO 1: Alinhado com a chave "id" enviada pela TelaEventos pós-scanner
-        eventoId           = getIntent().getStringExtra("id");
-        String nomeEvento  = getIntent().getStringExtra("nomeEvento");
-        String dataEvento  = getIntent().getStringExtra("dataEvento");
+        eventoId          = getIntent().getStringExtra("id");
+        String nomeEvento = getIntent().getStringExtra("nomeEvento");
+        String dataEvento = getIntent().getStringExtra("dataEvento");
 
         if (eventoId   == null) eventoId   = "";
         if (nomeEvento == null) nomeEvento = "Evento";
         if (dataEvento == null) dataEvento = "";
 
-        // Subtítulo dinâmico com nome e data do evento
         if (!nomeEvento.isEmpty())
             txtSubtitulo.setText("Confirme sua presença em: " + nomeEvento +
                     (dataEvento.isEmpty() ? "" : " · " + dataEvento));
