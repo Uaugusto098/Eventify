@@ -90,27 +90,8 @@ public class TelaCadastrarEvento extends AppCompatActivity {
                 isFormatting = false;
             }
         });
-        imagemUser= registerForActivityResult(new ActivityResultContracts.GetContent(), new ActivityResultCallback<Uri>() {
-            @Override
-            public void onActivityResult(Uri select) {
 
-                if(select!=null)
-                {   imageUriselect=select;
 
-                    imageAdd.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                    imageAdd.setImageURI(select);
-                }
-
-            }
-        });
-        imageAdd.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                imagemUser.launch("image/*");
-
-            }
-        });
         btnBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

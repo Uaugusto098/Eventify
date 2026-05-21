@@ -48,9 +48,9 @@
 
             <ImageView
                 android:id="@+id/imageAdd1"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:src="@android:drawable/ic_menu_camera"
+                android:layout_width="236dp"
+                android:layout_height="108dp"
+                android:background="@drawable/logoapp"
                 app:tint="#FFFFFF" />
         </LinearLayout>
 

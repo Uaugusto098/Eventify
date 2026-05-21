@@ -50,10 +50,9 @@
 
             <ImageView
                 android:id="@+id/imageAdd"
-                android:layout_width="273dp"
-                android:layout_height="112dp"
-                android:src="@android:drawable/ic_menu_camera"
-                />
+                android:layout_width="246dp"
+                android:layout_height="114dp"
+                android:background="@drawable/logoapp" />
 
         </LinearLayout>
         <com.google.android.material.textfield.TextInputLayout
