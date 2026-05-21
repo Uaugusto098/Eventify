@@ -3,6 +3,7 @@ package com.example.eventlyapp;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -33,6 +34,7 @@ public class TelaListar extends AppCompatActivity {
     private String nomeEvento, detalhesEvento, emailDestino, eventoId;
     private ParticipanteAdapter adapter;
     private EventoDAO eventoDAO;
+    private Button btnImprimirdados;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,6 +96,28 @@ public class TelaListar extends AppCompatActivity {
         // 5. Botão Enviar Relatório por E-mail
         Button btnRelatorio = findViewById(R.id.btnImprimirTodos);
         btnRelatorio.setOnClickListener(v -> dispararEmailAutomatico());
+
+        btnImprimirdados = findViewById(R.id.btnImprimirTodos2);
+        btnImprimirdados.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (dados.isEmpty()) {
+                    Toast.makeText(TelaListar.this, "A lista está vazia. Não há dados para gerar o PDF.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                // 1. Captura o e-mail do usuário logado no Firebase Auth
+                com.google.firebase.auth.FirebaseUser usuarioLogado = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser();
+                if (usuarioLogado != null && usuarioLogado.getEmail() != null) {
+                    String emailLogado = usuarioLogado.getEmail();
+
+                    // 2. Chama a função para criar o PDF e disparar o e-mail
+                    gerarPdfEEnviar(emailLogado);
+                } else {
+                    Toast.makeText(TelaListar.this, "Erro: Usuário não autenticado ou e-mail não encontrado.", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
 
@@ -149,6 +173,113 @@ public class TelaListar extends AppCompatActivity {
         } catch (Exception e) {
             Toast.makeText(this, "Erro ao abrir o aplicativo de e-mail.", Toast.LENGTH_SHORT).show();
         }
+    }
+    private void gerarPdfEEnviar(String emailDestinatario) {
+        // 1. Criar o documento PDF (Exatamente como estava)
+        android.graphics.pdf.PdfDocument pdfDocument = new android.graphics.pdf.PdfDocument();
+        android.graphics.pdf.PdfDocument.PageInfo pageInfo = new android.graphics.pdf.PdfDocument.PageInfo.Builder(595, 842, 1).create();
+        android.graphics.pdf.PdfDocument.Page page = pdfDocument.startPage(pageInfo);
+
+        android.graphics.Canvas canvas = page.getCanvas();
+        android.graphics.Paint paint = new android.graphics.Paint();
+
+        int x = 40; int y = 50;
+        paint.setTextSize(18f); paint.setFakeBoldText(true);
+        canvas.drawText("Relatório de Participantes", x, y, paint);
+
+        y += 15; paint.setStrokeWidth(1f); canvas.drawLine(x, y, 555, y, paint);
+
+        y += 30; paint.setTextSize(12f); paint.setFakeBoldText(false);
+        canvas.drawText("Evento: " + nomeEvento, x, y, paint);
+
+        y += 20; canvas.drawText("Total de Participantes: " + dados.size(), x, y, paint);
+
+        y += 20; canvas.drawLine(x, y, 555, y, paint);
+
+        y += 30; paint.setFakeBoldText(true); canvas.drawText("Lista de Presença:", x, y, paint);
+        paint.setFakeBoldText(false);
+
+        y += 20;
+        for (String participante : dados) {
+            if (y > 800) {
+                canvas.drawText("... (Lista continua no sistema)", x, y, paint);
+                break;
+            }
+            canvas.drawText("- " + participante, x, y, paint);
+            y += 20;
+        }
+
+        pdfDocument.finishPage(page);
+
+        // 2. Salvar o arquivo PDF
+        java.io.File arquivoPdf = new java.io.File(getCacheDir(), "Relatorio_Eventify.pdf");
+        try {
+            pdfDocument.writeTo(new java.io.FileOutputStream(arquivoPdf));
+        } catch (java.io.IOException e) {
+            Toast.makeText(this, "Erro ao gerar PDF.", Toast.LENGTH_SHORT).show();
+            pdfDocument.close();
+            return;
+        }
+        pdfDocument.close();
+
+        // 3. Avisa o usuário que o processo começou e chama a função de envio silencioso
+        Toast.makeText(this, "Gerando e enviando relatório...", Toast.LENGTH_SHORT).show();
+        enviarEmailSilencioso(emailDestinatario, arquivoPdf);
+    }
+    private void enviarEmailSilencioso(String destinatario, java.io.File anexoPdf) {
+        new Thread(() -> {
+            try {
+                // 1. O e-mail e senha "remetente" do seu App (Leia a observação abaixo)
+                String emailRemetente = "appeventify3@gmail.com";
+                String senhaAppRemetente = "zzwy nmll huxx gegr";
+
+                // 2. Configurar o servidor do Gmail
+                java.util.Properties props = new java.util.Properties();
+                props.put("mail.smtp.host", "smtp.gmail.com");
+                props.put("mail.smtp.socketFactory.port", "465");
+                props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+                props.put("mail.smtp.auth", "true");
+                props.put("mail.smtp.port", "465");
+
+                // 3. Autenticação
+                Session session = Session.getInstance(props, new Authenticator() {
+                    protected PasswordAuthentication getPasswordAuthentication() {
+                        return new PasswordAuthentication(emailRemetente, senhaAppRemetente);
+                    }
+                });
+
+                // 4. Montar o e-mail
+                MimeMessage message = new MimeMessage(session);
+                message.setFrom(new InternetAddress(emailRemetente));
+                message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(destinatario));
+                message.setSubject("Relatório do Evento - " + nomeEvento);
+
+                // Parte do texto
+                javax.mail.internet.MimeBodyPart corpoTexto = new javax.mail.internet.MimeBodyPart();
+                corpoTexto.setText("Olá!\n\nSegue em anexo o relatório atualizado do evento " + nomeEvento + ".\nQuantidade total: " + dados.size() + " participantes.");
+
+                // Parte do anexo (O PDF)
+                javax.mail.internet.MimeBodyPart corpoAnexo = new javax.mail.internet.MimeBodyPart();
+                corpoAnexo.attachFile(anexoPdf);
+
+                // Juntar texto + anexo
+                javax.mail.Multipart multipart = new javax.mail.internet.MimeMultipart();
+                multipart.addBodyPart(corpoTexto);
+                multipart.addBodyPart(corpoAnexo);
+
+                message.setContent(multipart);
+
+                // 5. Enviar o E-mail!
+                Transport.send(message);
+
+                // 6. Voltar para a tela principal para mostrar a mensagem de sucesso
+                runOnUiThread(() -> Toast.makeText(TelaListar.this, "E-mail enviado com sucesso!", Toast.LENGTH_LONG).show());
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                runOnUiThread(() -> Toast.makeText(TelaListar.this, "Erro no envio. Verifique a conexão e as credenciais.", Toast.LENGTH_LONG).show());
+            }
+        }).start(); // Inicia a Thread em segundo plano
     }
 }
 
