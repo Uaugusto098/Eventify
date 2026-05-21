@@ -27,6 +27,12 @@ import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+import com.dantsu.escposprinter.EscPosPrinter;
+import com.dantsu.escposprinter.connection.bluetooth.BluetoothConnection;
+import com.dantsu.escposprinter.connection.bluetooth.BluetoothPrintersConnections;
+import com.dantsu.escposprinter.textparser.PrinterTextParserImg;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class TelaListar extends AppCompatActivity {
 
@@ -35,6 +41,7 @@ public class TelaListar extends AppCompatActivity {
     private ParticipanteAdapter adapter;
     private EventoDAO eventoDAO;
     private Button btnImprimirdados;
+    private final ExecutorService printerExecutor = Executors.newSingleThreadExecutor();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,25 +109,93 @@ public class TelaListar extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 if (dados.isEmpty()) {
-                    Toast.makeText(TelaListar.this, "A lista está vazia. Não há dados para gerar o PDF.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(TelaListar.this, "A lista está vazia.", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
-                // 1. Captura o e-mail do usuário logado no Firebase Auth
                 com.google.firebase.auth.FirebaseUser usuarioLogado = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser();
                 if (usuarioLogado != null && usuarioLogado.getEmail() != null) {
                     String emailLogado = usuarioLogado.getEmail();
-
-                    // 2. Chama a função para criar o PDF e disparar o e-mail
-                    gerarPdfEEnviar(emailLogado);
+                    // Chamamos a função que vai gerar o arquivo e, ao final, disparar as duas ações
+                    gerarPdfEEnviarEImprimir(emailLogado);
                 } else {
-                    Toast.makeText(TelaListar.this, "Erro: Usuário não autenticado ou e-mail não encontrado.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(TelaListar.this, "Erro: Usuário não autenticado.", Toast.LENGTH_SHORT).show();
                 }
             }
         });
     }
 
+    private void gerarPdfEEnviarEImprimir(String emailDestinatario) {
+        // [Seu código existente de criação do PDF permanece igual até aqui...]
+        android.graphics.pdf.PdfDocument pdfDocument = new android.graphics.pdf.PdfDocument();
+        // ... (restante do código que desenha o PDF)
 
+        // Salvar o arquivo
+        java.io.File arquivoPdf = new java.io.File(getCacheDir(), "Relatorio_Eventify.pdf");
+        try {
+            pdfDocument.writeTo(new java.io.FileOutputStream(arquivoPdf));
+        } catch (java.io.IOException e) {
+            Toast.makeText(this, "Erro ao salvar PDF", Toast.LENGTH_SHORT).show();
+            pdfDocument.close();
+            return;
+        }
+        pdfDocument.close();
+
+        // AÇÃO DUPLA:
+        Toast.makeText(this, "Enviando e-mail e imprimindo...", Toast.LENGTH_LONG).show();
+
+        // 1. Enviar E-mail (seu código atual)
+        enviarEmailSilencioso(emailDestinatario, arquivoPdf);
+
+        // 2. Imprimir via Bluetooth (nova função)
+        imprimirNaTermica();
+    }
+    private boolean garantirePermissaoBluetooth() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            if (androidx.core.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.BLUETOOTH_CONNECT) != android.content.pm.PackageManager.PERMISSION_GRANTED ||
+                    androidx.core.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.BLUETOOTH_SCAN) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                androidx.core.app.ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_SCAN}, 1001);
+                return false;
+            }
+        }
+        return true;
+    }
+    private void imprimirNaTermica() {
+        if (!garantirePermissaoBluetooth()) return;
+        printerExecutor.execute(() -> {
+            try {
+                // 1. Busca a impressora
+                BluetoothConnection connection = BluetoothPrintersConnections.selectFirstPaired();
+                if (connection == null) {
+                    runOnUiThread(() -> Toast.makeText(this, "Nenhuma impressora Bluetooth pareada.", Toast.LENGTH_SHORT).show());
+                    return;
+                }
+
+                // 2. Configura a impressora
+                EscPosPrinter printer = new EscPosPrinter(connection, 203, 48f, 32);
+
+                // 3. Monta o texto
+                StringBuilder texto = new StringBuilder();
+                texto.append("[C]<b>RELATÓRIO DE EVENTO</b>\n");
+                texto.append("[C]--------------------------------\n");
+                texto.append("[L]Evento: ").append(nomeEvento).append("\n");
+                texto.append("[L]Total: ").append(dados.size()).append(" participantes\n\n");
+                texto.append("[C]Lista de Presença:\n");
+                texto.append("[L]--------------------------------\n");
+                for (String p : dados) {
+                    texto.append("[L]").append(p).append("\n");
+                }
+                texto.append("[C]--------------------------------\n\n\n");
+
+                // 4. Imprime
+                printer.printFormattedText(texto.toString());
+                runOnUiThread(() -> Toast.makeText(this, "Impresso na térmica!", Toast.LENGTH_SHORT).show());
+
+            } catch (Exception e) {
+                runOnUiThread(() -> Toast.makeText(this, "Erro: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+            }
+        });
+    }
     private void dispararEmailAutomatico() {
         if (dados.isEmpty()) {
             Toast.makeText(this, "Nenhum participante para enviar e-mail.", Toast.LENGTH_SHORT).show();
@@ -280,6 +355,56 @@ public class TelaListar extends AppCompatActivity {
                 runOnUiThread(() -> Toast.makeText(TelaListar.this, "Erro no envio. Verifique a conexão e as credenciais.", Toast.LENGTH_LONG).show());
             }
         }).start(); // Inicia a Thread em segundo plano
+    }
+    private void imprimirPdf(java.io.File arquivoPdf) {
+        // Obtém o PrintManager do sistema
+        android.print.PrintManager printManager = (android.print.PrintManager) getSystemService(PRINT_SERVICE);
+
+        // Define o nome do trabalho de impressão
+        String jobName = getString(R.string.app_name) + " Documento";
+
+        // Cria um adaptador de impressão para o arquivo PDF
+        // Nota: Como estamos lidando com um File, precisamos de uma Uri ou de um PrintDocumentAdapter
+        // A forma mais simples é usar um PrintDocumentAdapter personalizado:
+
+        printManager.print(jobName, new android.print.PrintDocumentAdapter() {
+            @Override
+            public void onLayout(android.print.PrintAttributes oldAttributes, android.print.PrintAttributes newAttributes, android.os.CancellationSignal cancellationSignal, LayoutResultCallback callback, android.os.Bundle extras) {
+                if (cancellationSignal.isCanceled()) {
+                    callback.onLayoutCancelled();
+                    return;
+                }
+                android.print.PrintDocumentInfo pdi = new android.print.PrintDocumentInfo.Builder("Relatorio.pdf")
+                        .setContentType(android.print.PrintDocumentInfo.CONTENT_TYPE_DOCUMENT)
+                        .build();
+                callback.onLayoutFinished(pdi, true);
+            }
+
+            @Override
+            public void onWrite(android.print.PageRange[] pages, android.os.ParcelFileDescriptor destination, android.os.CancellationSignal cancellationSignal, WriteResultCallback callback) {
+                java.io.InputStream input = null;
+                java.io.OutputStream output = null;
+                try {
+                    input = new java.io.FileInputStream(arquivoPdf);
+                    output = new java.io.FileOutputStream(destination.getFileDescriptor());
+                    byte[] buf = new byte[1024];
+                    int bytesRead;
+                    while ((bytesRead = input.read(buf)) > 0) {
+                        output.write(buf, 0, bytesRead);
+                    }
+                    callback.onWriteFinished(new android.print.PageRange[]{android.print.PageRange.ALL_PAGES});
+                } catch (Exception e) {
+                    callback.onWriteFailed(e.getMessage());
+                } finally {
+                    try {
+                        if (input != null) input.close();
+                        if (output != null) output.close();
+                    } catch (java.io.IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }, null);
     }
 }
 
