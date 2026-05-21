@@ -249,58 +249,7 @@ public class TelaListar extends AppCompatActivity {
             Toast.makeText(this, "Erro ao abrir o aplicativo de e-mail.", Toast.LENGTH_SHORT).show();
         }
     }
-    private void gerarPdfEEnviar(String emailDestinatario) {
-        // 1. Criar o documento PDF (Exatamente como estava)
-        android.graphics.pdf.PdfDocument pdfDocument = new android.graphics.pdf.PdfDocument();
-        android.graphics.pdf.PdfDocument.PageInfo pageInfo = new android.graphics.pdf.PdfDocument.PageInfo.Builder(595, 842, 1).create();
-        android.graphics.pdf.PdfDocument.Page page = pdfDocument.startPage(pageInfo);
-
-        android.graphics.Canvas canvas = page.getCanvas();
-        android.graphics.Paint paint = new android.graphics.Paint();
-
-        int x = 40; int y = 50;
-        paint.setTextSize(18f); paint.setFakeBoldText(true);
-        canvas.drawText("Relatório de Participantes", x, y, paint);
-
-        y += 15; paint.setStrokeWidth(1f); canvas.drawLine(x, y, 555, y, paint);
-
-        y += 30; paint.setTextSize(12f); paint.setFakeBoldText(false);
-        canvas.drawText("Evento: " + nomeEvento, x, y, paint);
-
-        y += 20; canvas.drawText("Total de Participantes: " + dados.size(), x, y, paint);
-
-        y += 20; canvas.drawLine(x, y, 555, y, paint);
-
-        y += 30; paint.setFakeBoldText(true); canvas.drawText("Lista de Presença:", x, y, paint);
-        paint.setFakeBoldText(false);
-
-        y += 20;
-        for (String participante : dados) {
-            if (y > 800) {
-                canvas.drawText("... (Lista continua no sistema)", x, y, paint);
-                break;
-            }
-            canvas.drawText("- " + participante, x, y, paint);
-            y += 20;
-        }
-
-        pdfDocument.finishPage(page);
-
-        // 2. Salvar o arquivo PDF
-        java.io.File arquivoPdf = new java.io.File(getCacheDir(), "Relatorio_Eventify.pdf");
-        try {
-            pdfDocument.writeTo(new java.io.FileOutputStream(arquivoPdf));
-        } catch (java.io.IOException e) {
-            Toast.makeText(this, "Erro ao gerar PDF.", Toast.LENGTH_SHORT).show();
-            pdfDocument.close();
-            return;
-        }
-        pdfDocument.close();
-
-        // 3. Avisa o usuário que o processo começou e chama a função de envio silencioso
-        Toast.makeText(this, "Gerando e enviando relatório...", Toast.LENGTH_SHORT).show();
-        enviarEmailSilencioso(emailDestinatario, arquivoPdf);
-    }
+    
     private void enviarEmailSilencioso(String destinatario, java.io.File anexoPdf) {
         new Thread(() -> {
             try {
