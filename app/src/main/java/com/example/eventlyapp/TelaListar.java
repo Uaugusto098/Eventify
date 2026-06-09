@@ -130,7 +130,60 @@ public class TelaListar extends AppCompatActivity {
         android.graphics.pdf.PdfDocument pdfDocument = new android.graphics.pdf.PdfDocument();
         // ... (restante do código que desenha o PDF)
 
-        // Salvar o arquivo
+
+        // Configuração da página (A4 em pontos: 595 x 842)
+        android.graphics.pdf.PdfDocument.PageInfo pageInfo =
+                new android.graphics.pdf.PdfDocument.PageInfo.Builder(595, 842, 1).create();
+        android.graphics.pdf.PdfDocument.Page page = pdfDocument.startPage(pageInfo);
+
+        android.graphics.Canvas canvas = page.getCanvas();
+        android.graphics.Paint paint = new android.graphics.Paint();
+        paint.setAntiAlias(true);
+
+        // --- TÍTULO ---
+        paint.setTextSize(22f);
+        paint.setFakeBoldText(true);
+        paint.setColor(android.graphics.Color.BLACK);
+        canvas.drawText("Relatório de Participantes", 40, 60, paint);
+
+        // --- NOME DO EVENTO ---
+        paint.setTextSize(14f);
+        paint.setFakeBoldText(false);
+        paint.setColor(android.graphics.Color.DKGRAY);
+        canvas.drawText("Evento: " + nomeEvento, 40, 95, paint);
+        canvas.drawText("Total: " + dados.size() + " participante(s)", 40, 115, paint);
+
+        // --- LINHA SEPARADORA ---
+        paint.setColor(android.graphics.Color.LTGRAY);
+        paint.setStrokeWidth(1f);
+        canvas.drawLine(40, 130, 555, 130, paint);
+
+        // --- LISTA DE PARTICIPANTES ---
+        paint.setColor(android.graphics.Color.BLACK);
+        paint.setTextSize(12f);
+
+        int y = 155; // Posição vertical inicial da lista
+        int numeroPagina = 1;
+
+        for (int i = 0; i < dados.size(); i++) {
+            // Se chegou perto do fim da página, cria uma nova
+            if (y > 800) {
+                pdfDocument.finishPage(page);
+                numeroPagina++;
+                android.graphics.pdf.PdfDocument.PageInfo nextPageInfo =
+                        new android.graphics.pdf.PdfDocument.PageInfo.Builder(595, 842, numeroPagina).create();
+                page = pdfDocument.startPage(nextPageInfo);
+                canvas = page.getCanvas();
+                y = 40;
+            }
+
+            canvas.drawText((i + 1) + ". " + dados.get(i), 40, y, paint);
+            y += 22;
+        }
+
+        pdfDocument.finishPage(page);
+
+        // --- SALVAR ---
         java.io.File arquivoPdf = new java.io.File(getCacheDir(), "Relatorio_Eventify.pdf");
         try {
             pdfDocument.writeTo(new java.io.FileOutputStream(arquivoPdf));
@@ -141,14 +194,11 @@ public class TelaListar extends AppCompatActivity {
         }
         pdfDocument.close();
 
-        // AÇÃO DUPLA:
-        Toast.makeText(this, "Enviando e-mail e imprimindo...", Toast.LENGTH_LONG).show();
-
-        // 1. Enviar E-mail (seu código atual)
+        Toast.makeText(this, "Enviando relatório por e-mail...", Toast.LENGTH_LONG).show();
         enviarEmailSilencioso(emailDestinatario, arquivoPdf);
 
         // 2. Imprimir via Bluetooth (nova função)
-        imprimirNaTermica();
+        //imprimirNaTermica();
     }
     private boolean garantirePermissaoBluetooth() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
@@ -249,7 +299,7 @@ public class TelaListar extends AppCompatActivity {
             Toast.makeText(this, "Erro ao abrir o aplicativo de e-mail.", Toast.LENGTH_SHORT).show();
         }
     }
-    
+
     private void enviarEmailSilencioso(String destinatario, java.io.File anexoPdf) {
         new Thread(() -> {
             try {

@@ -218,17 +218,14 @@ public class TelaEvento extends AppCompatActivity {
         builder.setView(dialogView);
 
         ImageView imgQrCodeDialog = dialogView.findViewById(R.id.imgQrCodeDialog);
-        Button btnImprimirDialog = dialogView.findViewById(R.id.btnImprimirDialog);
+
         Button btnFecharDialog = dialogView.findViewById(R.id.btnFecharDialog);
 
         imgQrCodeDialog.setImageBitmap(currentQrCodeBitmap);
 
         AlertDialog dialog = builder.create();
 
-        btnImprimirDialog.setOnClickListener(v -> {
-            Toast.makeText(TelaEvento.this, "Enviando para a impressora térmica...", Toast.LENGTH_SHORT).show();
-            imprimirQrCodeBluetooth(currentQrCodeBitmap);
-        });
+
 
         btnFecharDialog.setOnClickListener(v -> dialog.dismiss());
 
